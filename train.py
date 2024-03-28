@@ -101,7 +101,7 @@ def build_model(
         nlayers=nlayers,
         dropout=dropout,
         style_encoder=style_encoder,
-        y_encoder=y_encoder_generator(7, emsize),  # TODO: Num outputs = y_def.shape?
+        y_encoder=y_encoder_generator(14, emsize),  # TODO: Num outputs = y_def.shape?
         input_normalization=input_normalization,
         pos_encoder=pos_encoder,
         decoder_dict=decoder_dict if decoder_dict else {"standard": (None, n_out)},
@@ -208,7 +208,7 @@ def train(
     elif isinstance(criterion, nn.CrossEntropyLoss):
         n_out = num_classes
     elif isinstance(criterion, nn.MSELoss):
-        n_out = 7
+        n_out = 14
     else:
         n_out = 1
 

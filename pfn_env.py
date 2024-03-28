@@ -93,14 +93,13 @@ class ArtificialEnv(gym.Env):
         self.train_y = torch.full((seq_len, batch_size, num_features), float(0.))
         observation, info = self.real_env.reset()
         for b in range(batch_size):
-            """
             for i in range(1001):
-                high = np.array([np.pi, 8.0])
+                high = np.array([4.9, 5., 0.45, 5.0])
                 low = -high
                 random_state = np.random.uniform(low=low, high=high)
-                action = np.random.uniform(low=-2, high=2, size=1)  # self.real_env.action_space.sample()
+                action = self.real_env.action_space.sample()
                 self.real_env.env.env.env.state = random_state.copy()
-                observation = self.real_env.env.env.env._get_obs()
+                observation = self.real_env.env.env.env.state  # _get_obs() for Pendulum e.g. state =/= obs
                 obs = torch.full((num_features - 1,), 0.)
                 obs[:observation.shape[0]] = torch.tensor(observation)
                 obs_action_pair = torch.hstack((obs, torch.tensor(action)))
@@ -155,6 +154,7 @@ class ArtificialEnv(gym.Env):
                         observation, info = self.real_env.reset()
                         ep += 1
                         print(f"Episode {ep}")
+        """
 
         plt.ioff()
         fig, axs = plt.subplots(1, 6)
@@ -229,7 +229,8 @@ class ArtificialEnv(gym.Env):
         # self.pfn.load_state_dict(torch.load("trained_models/prior_larger.pt"))
         # self.pfn.load_state_dict(torch.load("trained_models/se_pfn_transfer.pt"))
         # self.pfn.load_state_dict(torch.load("trained_models/se_pfn_transfer_new_to_not_overwrite.pt"))
-        self.pfn.load_state_dict(torch.load("trained_models/prior_retrain_working.pt"))
+        # self.pfn.load_state_dict(torch.load("trained_models/prior_retrain_working.pt"))
+        self.pfn.load_state_dict(torch.load("trained_models/prior_weighted_eval_pos_1001_seq_default_y_0.pt"))
         # TODO check if eval needed/wanted
         self.pfn.eval()
 

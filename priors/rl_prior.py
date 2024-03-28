@@ -1,5 +1,4 @@
 import grid_world
-import simple_env
 from .prior import Batch
 from utils import default_device
 import networkx as nx
@@ -10,6 +9,7 @@ import statistics
 import gym
 import torch
 from gym import spaces
+import utils
 
 def sigmoid(num):
     return 1/(1 + np.exp(-num))
@@ -169,6 +169,92 @@ def NNgenerator(input_size, target_num=1):
     return model.float()
 
 
+def make_weights_sparse(m):
+    if isinstance(m, torch.nn.Linear):
+        b = torch.rand(m.weight.shape)
+        m.weight = torch.nn.Parameter(m.weight * (b >= 0.1))
+
+
+class RewardModel:
+    def __init__(self, state_size, max_state):
+        self.model_type = np.random.choice(["Singleton", "MLP", "Linear"])
+        if self.model_type == "MLP":
+            self.model = torch.nn.Sequential(torch.nn.Linear(state_size, 64),
+                                             get_random_activation(),
+                                             torch.nn.Linear(64, 1)).float()
+            self.model.apply(make_weights_sparse)
+        elif self.model_type == "Linear":
+            self.model = torch.nn.Sequential(torch.nn.Linear(state_size, 1)).float()
+            self.model.apply(make_weights_sparse)
+        else:
+            self.target_value = torch.tensor(np.random.uniform(low=-max_state, high=max_state)).float()
+
+    def forward(self, ns):
+        if self.model_type == "MLP" or self.model_type == "Linear":
+            return self.model.forward(ns)
+        else:
+            return float(torch.allclose(ns, self.target_value, rtol=1e-05, atol=0.01))
+
+
+def SmallNNGen(input_size, output_size):
+    model = torch.nn.Sequential(torch.nn.Linear(input_size, 64),
+                                get_random_activation(),
+                                torch.nn.Linear(64, output_size))
+
+    return model.float()
+
+
+class FullNNEnv(gym.Env):
+
+    def __init__(self):
+        self.state = None
+
+        self.discrete = False
+        if random.random() > 0.85:
+            self.action_dim = 1
+            self.discrete = True
+            dim = np.random.randint(2, high=5)
+            self.action_space = spaces.Discrete(dim)
+        else:
+            self.action_dim = np.random.randint(1, high=4)
+            max_action = np.random.randint(1, high=5, size=self.action_dim)
+            self.action_space = spaces.Box(
+                low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
+            )
+
+        self.obs_size = random.randint(3, 11)
+        self.max_state = 5 * np.random.rand(self.obs_size)
+
+        self.total_steps = 0
+
+        self.state_to_hidden = SmallNNGen(self.obs_size, 64)
+        self.state_to_hidden.apply(make_weights_sparse)
+        self.action_to_hidden = SmallNNGen(self.action_dim, 64)
+        self.hidden_to_nextstate = SmallNNGen(64, self.obs_size)
+        self.reward_model = RewardModel(self.obs_size, max_state=self.max_state)
+        self.eps_steps = 0
+
+    def step(self, action):
+        if isinstance(action, int):
+            action = [action]
+        else:
+            action = list(action)
+        with torch.no_grad():
+            hidden_action = self.action_to_hidden(torch.tensor(action).float())
+            hidden_state = self.state_to_hidden(torch.tensor(self.state).float())
+            new_state = self.hidden_to_nextstate(hidden_state + hidden_action)
+            reward = self.reward_model.forward(new_state)
+        self.state = new_state
+        terminated = False
+        return np.array(self.state), reward, terminated, False, None
+
+    def render(self):
+        pass
+
+    def reset(self, shift=False, **kwargs):
+        pass
+
+
 class NNEnvironment(gym.Env):
 
     def __init__(self):
@@ -258,15 +344,18 @@ def get_dataset(test=False):
         # env_name = np.random.choice(["RandomEnv", "Acrobot-v1", "Pendulum-v1", 'MountainCarContinuous-v0', 'MountainCar-v0'])
         # "Acrobot-v1",
         # env_name = "CartPole-v0"
-        env_name = "NNEnv"
+        # env_name = "NNEnv"
+        env_name = "FullNNEnv"
     if env_name == "RandomEnv":
         env = RandomEnv()
     elif env_name == "NNEnv":
         env = NNEnvironment()
+    elif env_name == "FullNNEnv":
+        env = FullNNEnv()
     elif env_name == "GridWorld":
         env = grid_world.GridWorld()
-    elif env_name == "SimpleEnv":
-        env = simple_env.SimpleEnv()
+    # elif env_name == "SimpleEnv":
+        #env = simple_env.SimpleEnv()
     else:
         env = gym.make(env_name)
     if env_name == "CartPole-v0":
@@ -308,20 +397,17 @@ def get_batch(
         **kwargs
 ):
     X = torch.full((seq_len, batch_size, num_features), 0.)
-    Y = torch.full((seq_len, batch_size, num_features), float(-100.))
+    Y = torch.full((seq_len, batch_size, num_features), float(0.))
 
     if hyperparameters["test"]:
         X, Y, x_means, x_stds, y_means, y_stds = get_test_batch(seq_len, batch_size, num_features, X, Y)
     else:
         X, Y = get_train_batch(seq_len, batch_size, num_features, X, Y)
 
-    perm = torch.randperm(1000)
-    X[:1000, :, :] = X[:1000, :, :][perm]
-    Y[:1000, :, :] = Y[:1000, :, :][perm]
-
-    perm = torch.randperm(500)
-    X[1000:, :, :] = X[1000:, :, :][perm]
-    Y[1000:, :, :] = Y[1000:, :, :][perm]
+    # TODO get hyperparameters to train len and min trainlen
+    perm = torch.randperm(seq_len)
+    X = X[perm]
+    Y = Y[perm]
 
     if not hyperparameters["test"]:
         return Batch(x=X, y=Y, target_y=Y)
@@ -331,6 +417,28 @@ def get_batch(
 
 def get_test_batch(seq_len, batches, num_features, X, Y):
     for b in range(batches):
+        env = get_dataset(True)
+        env.reset()
+        for i in range(seq_len):
+            high = np.array([4.9, 5., 0.45, 5.0])
+            low = -high
+            random_state = np.random.uniform(low=low, high=high)
+            action = env.action_space.sample()
+            env.env.env.env.state = random_state.copy()
+            observation = env.env.env.env.state  # _get_obs() for Pendulum e.g. state =/= obs
+            obs = torch.full((num_features - 1,), 0.)
+            obs[:observation.shape[0]] = torch.tensor(observation)
+            obs_action_pair = torch.hstack((obs, torch.tensor(action)))
+            batch_features = observation.shape[0] + 1  # action.shape[0]
+            X[i, b] = obs_action_pair * num_features / batch_features
+            observation, reward, terminated, truncated, info = env.step(action)
+
+            obs = torch.full((num_features - 1,), 0.)
+            obs[:observation.shape[0]] = torch.tensor(observation)
+            # obs[-1] = float(terminated or truncated) # TODO if possible for all env
+            next_state_reward_pair = torch.hstack((obs, torch.tensor(reward)))
+            Y[i, b] = next_state_reward_pair
+    """
         env = get_dataset(True)
         observation, info = env.reset()
         steps_after_done = 0
@@ -376,7 +484,7 @@ def get_test_batch(seq_len, batches, num_features, X, Y):
                     ep += 1
 
         env.close()
-
+    """
     X[1000:, :, :] = X[1000:, 0, :].unsqueeze(1)
     Y[1000:, :, :] = Y[1000:, 0, :].unsqueeze(1)
     x_means = torch.mean(X[:1000, :, :], dim=0)
@@ -386,11 +494,51 @@ def get_test_batch(seq_len, batches, num_features, X, Y):
     y_means = torch.mean(Y[:1000, :, :], dim=0)
     y_stds = torch.std(Y[:1000, :, :], dim=0)
     Y = torch.nan_to_num((Y - y_means) / y_stds, nan=0)
-
     return X, Y, x_means, x_stds, y_means, y_stds
 
 
 def get_train_batch(seq_len, batches, num_features, X, Y):
+    for b in range(batches):
+        env = get_dataset(False)
+        for i in range(seq_len):
+            random_state = np.random.uniform(low=-env.max_state, high=env.max_state)
+            action = env.action_space.sample()
+            if isinstance(action, int):
+                action = [action]
+            else:
+                action = list(action)
+            env.state = random_state.copy()
+            observation = env.state  # _get_obs() for Pendulum e.g. state =/= obs
+
+            action_length = len(action)
+            act = torch.tensor(action + (3 - len(action)) * [0.])
+            obs = torch.full((num_features - 3,), 0.)
+            obs[:observation.shape[0]] = torch.tensor(observation)
+            obs_action_pair = torch.hstack((obs, act))
+            batch_features = observation.shape[0] + action_length
+            X[i, b] = obs_action_pair  # * num_features/batch_features TODO compare performance woth or Without
+            observation, reward, terminated, truncated, info = env.step(action)
+            obs = torch.full((num_features - 3,), 0.)
+            obs[:observation.shape[0]] = torch.tensor(observation)
+            re = torch.full((3,), 0.)
+            re[0:] = torch.tensor(reward)  # Reward always 1-D signal num features always same size as in input
+            next_state_reward_pair = torch.hstack((obs, re))
+            Y[i, b] = next_state_reward_pair
+
+        env.close()
+        # add gaussian noise
+        mean = torch.mean(X[:, b], dim=0)
+        std = torch.std(X[:, b], dim=0)
+        X[:, b] = torch.nan_to_num((X[:, b] - mean) / std, nan=0)
+        X = X  # + torch.normal(mean=0, std=0.01, size=X.shape)
+        mean = torch.mean(Y[:, b], dim=0)
+        std = torch.std(Y[:, b], dim=0)
+        Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
+        Y = Y  # + torch.normal(mean=0, std=0.01, size=Y.shape)
+    return X, Y
+
+
+"""
     for b in range(batches):
         env = get_dataset(False)
         feature_order = torch.randperm(num_features-1)
@@ -430,15 +578,4 @@ def get_train_batch(seq_len, batches, num_features, X, Y):
             Y[i, b] = next_state_reward_pair
             if terminated:
                 observation, info = env.reset(shift=(i > 1000))
-
-        env.close()
-        # add gaussian noise
-        mean = torch.mean(X[:1000, b], dim=0)
-        std = torch.std(X[:1000, b], dim=0)
-        X[:, b] = torch.nan_to_num((X[:, b] - mean) / std, nan=0)
-        X = X  # + torch.normal(mean=0, std=0.01, size=X.shape)
-        mean = torch.mean(Y[:1000, b], dim=0)
-        std = torch.std(Y[:1000, b], dim=0)
-        Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
-        Y = Y  # + torch.normal(mean=0, std=0.01, size=Y.shape)
-    return X, Y
+    """

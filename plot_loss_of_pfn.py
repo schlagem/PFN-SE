@@ -55,10 +55,11 @@ print(
 # pfn.load_state_dict(torch.load("trained_models/se_pfn_transfer_new_to_not_overwrite.pt"))
 # pfn.load_state_dict(torch.load("trained_models/prior_changes_small.pt"))
 # pfn.load_state_dict(torch.load("trained_models/prior_larger.pt"))
-pfn.load_state_dict(torch.load("trained_models/prior_retrain_working.pt"))
+# pfn.load_state_dict(torch.load("trained_models/prior_retrain_working.pt"))
+pfn.load_state_dict(torch.load("trained_models/prior_weighted_eval_pos_1001_seq_default_y_0.pt"))
 pfn.eval()
 
-batch, x_means, x_stds, y_means, y_stds = priors.rl_prior.get_batch(batch_size=10, seq_len=1500, num_features=num_features, hyperparameters=hps)
+batch, x_means, x_stds, y_means, y_stds = priors.rl_prior.get_batch(batch_size=100, seq_len=1001, num_features=num_features, hyperparameters=hps)
 
 print(x_means)
 print(x_stds)
