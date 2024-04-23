@@ -12,7 +12,6 @@ from ConfigSpace import UniformIntegerHyperparameter
 from ConfigSpace import UniformFloatHyperparameter
 from ConfigSpace import CategoricalHyperparameter
 from ConfigSpace import EqualsCondition
-import yaml
 import hpbandster.core.result as hpres
 
 from hpbandster.optimizers import BOHB as BOHB

@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import gym
+import gymnasium as gym
+
 
 class DQN(nn.Module):
 

@@ -6,7 +6,6 @@ import gymnasium as gym
 
 import torch
 import torch.nn as nn
-from gym.core import RenderFrame
 import numpy as np
 
 import grid_world
@@ -178,5 +177,3 @@ class ArtificialEnv(gym.Env):
         self.train_x[1000:] = 0
         return self.state, information
 
-    def render(self) -> Optional[Union[RenderFrame, List[RenderFrame]]]:
-        raise NotImplementedError

@@ -1,16 +1,11 @@
 import grid_world
 from .prior import Batch
 from utils import default_device
-import networkx as nx
 import random
 import numpy as np
-import math
-import statistics
-import gym
+import gymnasium as gym
 import torch
-from gym import spaces
-import utils
-
+from gymnasium import spaces
 
 class SinActivation(torch.nn.Module):
     def __init__(self):
@@ -350,12 +345,12 @@ def get_train_batch(seq_len, batches, num_features, X, Y, hps):
         observation, info = env.reset()
         for i in range(seq_len):
             action = env.action_space.sample()
-            if isinstance(action, int):
+            if isinstance(action, int) or isinstance(action, np.integer):
                 action = [action]
             else:
                 action = list(action)
             action_length = len(action)
-            act = torch.tensor(action + (3 - len(action)) * [0.])
+            act = torch.tensor(+ (3 - len(action)) * [0.] + action)
             # Get X value which is state and action
             # observation is state and filled with -100.
             # Then shuffled
