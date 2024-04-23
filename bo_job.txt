@@ -3,10 +3,10 @@
 #SBATCH --cpus-per-task 8
 #SBATCH --ntasks=1
 #SBATCH --mem 48000 # memory pool for all cores (4GB)
-#SBATCH -t 0-30:00 # time (D-HH:MM)
+#SBATCH -t 1-00:00 # time (D-HH:MM)
 #SBATCH -a 0-7 # array size
-#SBATCH -J BO_for_HP_petri_test_run # Job name
-#SBATCH -D /work/dlclarge1/schlagem-petri/synthetic-petri-dish
+#SBATCH -J BO_for_HP_oswm_test_run # Job name
+#SBATCH -D /work/dlclarge1/schlagem-oswm/
 #SBATCH -o log/%x.%N.%A.%a.out # STDOUT  (the folder log has to exist) %A will be replaced by the SLURM_ARRAY_JOB_ID value, whilst %a will be replaced by the SLURM_ARRAY_TASK_ID
 #SBATCH -e log/%x.%N.%A.%a.err # STDERR  (the folder log has to exist) %A will be replaced by the SLURM_ARRAY_JOB_ID
 #SBATCH --mail-type=END,FAIL # (recive mails about end and timeouts/crashes of your job)
@@ -14,15 +14,14 @@
 
 # activating profile and conda env
 source /home/schlagem/.profile
-conda activate nb101petri
+conda activate pfn
 
 # Job to peform
 if [ 0 -eq $SLURM_ARRAY_TASK_ID ]; then
-   python -u -m BO_hpbandster --config_path configs/small_test.yaml --n_workers 7 --run_id small_test_cluster --n_iterations 21 --min_budget 300 --max_budget 300 --shared_directory /work/dlclarge1/schlagem-petri/synthetic-petri-dish
+   python BO_hpbandster.py --shared_directory /work/dlclarge1/schlagem-oswm/PFN-SE --run_id debug_test --n_workers 7 --n_iterations 21 --min_budget 1 --max_budget 1
 else
-   python -u -m BO_hpbandster --config_path configs/small_test.yaml --run_id small_test_cluster --worker --shared_directory /work/dlclarge1/schlagem-petri/synthetic-petri-dish
+   python BO_hpbandster.py --shared_directory /work/dlclarge1/schlagem-oswm/PFN-SE --run_id debug_test  --worker
 fi
-
 
 # Print some Information about the end-time to STDOUT
 echo "DONE";
