@@ -39,7 +39,7 @@ pfn = build_model(
     # emsize=512, nhead=8, nhid=1024, nlayers=12,
     # emsize=800, nhead=8, nhid=1024, nlayers=12,
     # emsize=1024, nhid=2048, nlayers=8, nhead=8,
-    seq_len=1500,
+    seq_len=1001,
     y_encoder_generator=encoders.Linear,
     decoder_dict={},
     extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
@@ -56,7 +56,8 @@ print(
 # pfn.load_state_dict(torch.load("trained_models/prior_changes_small.pt"))
 # pfn.load_state_dict(torch.load("trained_models/prior_larger.pt"))
 # pfn.load_state_dict(torch.load("trained_models/prior_retrain_working.pt"))
-pfn.load_state_dict(torch.load("trained_models/prior_weighted_eval_pos_1001_seq_default_y_0.pt"))
+# pfn.load_state_dict(torch.load("trained_models/prior_weighted_eval_pos_1001_seq_default_y_0.pt"))
+pfn.load_state_dict(torch.load("trained_models/Hidden_prior.pt"))
 pfn.eval()
 
 batch, x_means, x_stds, y_means, y_stds = priors.rl_prior.get_batch(batch_size=100, seq_len=1001, num_features=num_features, hyperparameters=hps)
@@ -87,8 +88,6 @@ y_target = (batch.y * y_stds) + y_means
 
 with torch.no_grad():
     torch.set_printoptions(sci_mode=False)
-    print("Mean Final test loss:", torch.nn.functional.mse_loss(torch.mean(y[1000:, :, :], dim=1), torch.mean(y_target[1000:, :, :], dim=1)))
-    print("Mean Testloss per axis:", torch.nn.functional.mse_loss(torch.mean(y[1000:, :, :], dim=1), torch.mean(y_target[1000:, :, :], dim=1), reduction="none").mean(axis=(0)))
     print("Final test loss:", torch.nn.functional.mse_loss(y[1000:, :, :], y_target[1000:, :, :]))
     print("Testloss per axis:", torch.nn.functional.mse_loss(y[1000:, :, :], y_target[1000:, :, :], reduction="none").mean(axis=(0, 1)))
 

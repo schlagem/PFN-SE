@@ -11,128 +11,6 @@ import torch
 from gym import spaces
 import utils
 
-def sigmoid(num):
-    return 1/(1 + np.exp(-num))
-
-
-def identity(num):
-    return num
-
-
-def euc_distance(vec):
-    summation = 0
-    for val in vec:
-        summation += val**2
-    return math.sqrt(summation)
-
-
-def get_random_ops(n):
-    return list(np.random.choice([np.cos, np.sin, identity, np.tanh], n))
-
-
-def get_aggregation(n):
-    return list(np.random.choice([sum, math.prod, euc_distance, statistics.mean], n))
-
-
-def get_random_graph(input_num):
-    LayerNumbers = [input_num, 4, 1]  # 3 inputs 3 intermediate 1 output
-
-    G = nx.DiGraph()
-    total_num_nodes = 0
-    e = []
-    for i, l in enumerate(LayerNumbers):
-        G.add_nodes_from(np.arange(l) + total_num_nodes)
-        total_num_nodes += l
-        if i < len(LayerNumbers) - 1:
-            for k in range(l):
-                if i < len(LayerNumbers) - 2:
-                    low = 1
-                else:
-                    low = 0
-                #print("Low draw", low, "high_draw", LayerNumbers[i+1])
-                number_of_draws = np.random.randint(low, LayerNumbers[i+1] + 1)
-                #print("number_of_draws: ", number_of_draws)
-                pool_of_target_nodes = np.arange(LayerNumbers[i+1])+total_num_nodes
-                #print("pool_of_target_nodes: ", pool_of_target_nodes)
-                target_nodes = np.random.choice(pool_of_target_nodes,
-                                                number_of_draws,
-                                                replace=False)
-                #print("drawn node: ", target_nodes)
-                for t in target_nodes:
-                    #print((total_num_nodes - l + k, t))
-                    e.append((total_num_nodes - l + k, t))
-
-    G.add_edges_from(e)
-    nx.set_node_attributes(G, 1., "value")
-
-    agg = get_aggregation(len(G.nodes))
-    nx.set_node_attributes(G, dict(zip(G.nodes, agg)), name="aggregation")
-
-    ops = get_random_ops(len(G.edges))
-    nx.set_edge_attributes(G, dict(zip(G.edges, ops)), name="operation")
-    return G
-
-
-def set_state_and_action(G, s, a):
-    s.append(a)
-    nx.set_node_attributes(G, dict(zip(np.arange(len(s)), s)), "value")
-    return G
-
-
-def evaluate_graph(RG, s, a):
-    RG = set_state_and_action(RG, s, a)
-    for n in RG:
-        in_edges = RG.in_edges(n)
-        if in_edges:
-            parent_values = []
-            for e in in_edges:
-                parent_values.append(RG.edges[e]["operation"](RG.nodes[n]["value"]))
-            RG.nodes[n]["value"] = RG.nodes[n]["aggregation"](parent_values)
-    return RG.nodes[len(RG.nodes)-1]["value"]
-
-
-class RandomEnv(gym.Env):
-
-    def __init__(self):
-        self.state = None
-
-        self.constant_reward = random.random() > 0.5
-        if random.random() > 0.5:
-            self.action_space = spaces.Discrete(2)
-        else:
-            self.action_space = spaces.Box(
-                low=-1., high=1, shape=(1,), dtype=np.float32
-            )
-
-        self.obs_size = random.randint(3, 6)
-
-        self.graph_list = []
-        for i in range(self.obs_size + 1):
-            self.graph_list.append(get_random_graph(self.obs_size + 1))
-
-        self.eps_steps = 0
-
-    def step(self, action):
-        next_state_and_reward = []
-        for g in self.graph_list:
-            next_state_and_reward.append(evaluate_graph(g, list(self.state), action))
-        self.state = next_state_and_reward[:self.obs_size]
-        self.eps_steps += 1
-        if self.constant_reward:
-            reward = 1.
-        else:
-            reward = next_state_and_reward[-1]
-        terminated = self.eps_steps > 50
-        return np.array(self.state), reward, terminated, False, None
-
-    def render(self):
-        pass
-
-    def reset(self, **kwargs):
-        self.state = np.random.rand(self.obs_size)
-        self.eps_steps = 0
-        return self.state, None
-
 
 class SinActivation(torch.nn.Module):
     def __init__(self):
@@ -143,8 +21,28 @@ class SinActivation(torch.nn.Module):
         return torch.sin(x)
 
 
-def get_random_activation():
-    act_fun = np.random.choice([torch.nn.ReLU(), SinActivation(), torch.nn.Tanh(), torch.nn.Sigmoid()])
+class NoOpActivation(torch.nn.Module):
+    def __init__(self):
+        super(NoOpActivation, self).__init__()
+        return
+
+    def forward(self, x):
+        return x
+
+
+def get_random_activation(relu=True, sin=True, tanh=True, sigmoid=True):
+    act_choices = []
+    if relu:
+        act_choices.append(torch.nn.ReLU())
+    if sin:
+        act_choices.append(SinActivation())
+    if tanh:
+        act_choices.append(torch.nn.Tanh())
+    if sigmoid:
+        act_choices.append(torch.nn.Sigmoid())
+    if not relu and not sin and not tanh and not sigmoid:
+        return NoOpActivation()
+    act_fun = np.random.choice(act_choices)
     return act_fun
 
 
@@ -157,43 +55,58 @@ def NNgenerator(input_size, target_num=1):
                                 get_random_activation(),
                                 torch.nn.Linear(32, target_num))
 
-
-    def init_weights(m):
-        if isinstance(m, torch.nn.Linear):
-            # torch.nn.init.xavier_normal(m.weight, gain=1.5)
-            torch.nn.init.uniform(m.weight, -5, 5)
-            # m.bias.data.fill_(0.01)
-
-    # model.apply(init_weights)
-
     return model.float()
 
 
-def make_weights_sparse(m):
-    if isinstance(m, torch.nn.Linear):
-        b = torch.rand(m.weight.shape)
-        m.weight = torch.nn.Parameter(m.weight * (b >= 0.1))
+class CustomFixedDropout(torch.nn.Module):
+
+    def __init__(self, size, p, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # https://discuss.pytorch.org/t/how-to-fix-the-dropout-mask-for-different-batch/7119/2
+        # generate a mask in shape hidden
+        self.mask = torch.bernoulli(torch.full((size,), p))
+
+    def forward(self, x):
+        return x * self.mask
 
 
-class RewardModel:
-    def __init__(self, state_size, max_state):
-        self.model_type = np.random.choice(["Singleton", "MLP", "Linear"])
-        if self.model_type == "MLP":
-            self.model = torch.nn.Sequential(torch.nn.Linear(state_size, 64),
-                                             get_random_activation(),
-                                             torch.nn.Linear(64, 1)).float()
-            self.model.apply(make_weights_sparse)
-        elif self.model_type == "Linear":
-            self.model = torch.nn.Sequential(torch.nn.Linear(state_size, 1)).float()
-            self.model.apply(make_weights_sparse)
-        else:
-            self.target_value = torch.tensor(np.random.uniform(low=-max_state, high=max_state)).float()
+class HPStepNN(torch.nn.Module):
 
-    def forward(self, ns):
-        if self.model_type == "MLP" or self.model_type == "Linear":
-            return self.model.forward(ns)
-        else:
-            return float(torch.allclose(ns, self.target_value, rtol=1e-05, atol=0.01))
+    def __init__(self, input_size, output_size, hps, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        num_hidden = hps["num_hidden"]
+        width_hidden = hps["width_hidden"]
+        use_bias = hps["use_bias"]
+
+        self.residual_flag = hps["use_res_connection"]
+
+        self.in_lin = torch.nn.Linear(input_size, width_hidden, bias=use_bias)
+        self.in_act = get_random_activation(relu=hps["relu"],
+                                            sin=hps["sin"],
+                                            tanh=hps["tanh"],
+                                            sigmoid=hps["sigmoid"]
+                                            )
+        self.layer_list = []
+        for i in range(num_hidden):
+            seq_list = [torch.nn.Linear(width_hidden, width_hidden, bias=use_bias)]
+            if hps["use_dropout"]:
+                seq_list.append(CustomFixedDropout(width_hidden, hps["dropout_p"]))
+            if hps["use_layer_norm"]:
+                seq_list.append(torch.nn.LayerNorm(width_hidden))
+            seq_list.append(get_random_activation(relu=hps["relu"],
+                                                  sin=hps["sin"],
+                                                  tanh=hps["tanh"],
+                                                  sigmoid=hps["sigmoid"]
+                                                  ))
+            self.layer_list.append(torch.nn.Sequential(*seq_list))
+        self.out_lin = torch.nn.Linear(width_hidden, output_size, bias=use_bias)
+
+    def forward(self, x):
+        residual = self.in_lin(x)  # TODO norm, mask, dropout
+        out = self.in_act(residual)
+        for layer in self.layer_list:
+            out = layer(out) + self.residual_flag * residual
+        return self.out_lin(out)
 
 
 def SmallNNGen(input_size, output_size):
@@ -206,7 +119,7 @@ def SmallNNGen(input_size, output_size):
 
 class FullNNEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, hps):
         self.state = None
 
         self.discrete = False
@@ -223,15 +136,16 @@ class FullNNEnv(gym.Env):
             )
 
         self.obs_size = random.randint(3, 11)
-        self.max_state = 5 * np.random.rand(self.obs_size)
+
+        self.state_scale = hps["state_scale"] * np.random.rand(self.obs_size)
+        self.state_offset = hps["state_offset"] * (np.random.rand() - 0.5)
 
         self.total_steps = 0
 
-        self.state_to_hidden = SmallNNGen(self.obs_size, 64)
-        self.state_to_hidden.apply(make_weights_sparse)
-        self.action_to_hidden = SmallNNGen(self.action_dim, 64)
-        self.hidden_to_nextstate = SmallNNGen(64, self.obs_size)
-        self.reward_model = RewardModel(self.obs_size, max_state=self.max_state)
+        self.state_to_hidden = HPStepNN(self.obs_size, 64, hps)
+        self.action_to_hidden = HPStepNN(self.action_dim, 64, hps)
+        self.hidden_to_nextstate = HPStepNN(64, self.obs_size, hps)
+        self.reward_model = HPStepNN(self.obs_size, 1, hps)
         self.eps_steps = 0
 
     def step(self, action):
@@ -251,13 +165,15 @@ class FullNNEnv(gym.Env):
     def render(self):
         pass
 
-    def reset(self, shift=False, **kwargs):
-        pass
+    def reset(self, **kwargs):
+        self.state = (np.random.rand(self.obs_size) - self.state_offset) * self.state_scale
+        self.eps_steps = 0
+        return self.state, None
 
 
 class NNEnvironment(gym.Env):
 
-    def __init__(self):
+    def __init__(self, hps):
         self.state = None
 
         self.constant_reward = random.random() > 0.5
@@ -270,29 +186,28 @@ class NNEnvironment(gym.Env):
             self.offset = np.random.choice([0, 0.5, 1.])
             self.scale = np.random.randint(1, 5)
         else:
-            self.action_dim = 1 # np.random.randint(1, high=4)
+            self.action_dim = np.random.randint(1, high=4)
             max_action = np.random.randint(1, high=5)
             self.action_space = spaces.Box(
                 low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
             )
 
-        self.obs_size = random.randint(3, 6)
-        self.state_scale = 10 * np.random.rand(self.obs_size)
-        self.state_offset = 1.5 * (np.random.rand() - 0.5)
+        self.obs_size = random.randint(3, 11)
+        self.state_scale = hps["state_scale"] * np.random.rand(self.obs_size)
+        self.state_offset = hps["state_offset"] * (np.random.rand() - 0.5)
         self.total_steps = 0
-
 
         self.NN_list = []
         for i in range(self.obs_size):
-            self.NN_list.append(NNgenerator(self.obs_size + self.action_dim, target_num=1))
-        self.reward_model = NNgenerator(self.obs_size + self.action_dim, target_num=1)
+            self.NN_list.append(HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=hps))
+        self.reward_model = HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=hps)
         self.eps_steps = 0
 
     def step(self, action):
         if self.discrete:
             action = (action - self.offset) * self.scale
         next_state_and_reward = []
-        if isinstance(action, int):
+        if isinstance(action, int) or isinstance(action, float):
             action = [action]
         else:
             action = list(action)
@@ -307,10 +222,8 @@ class NNEnvironment(gym.Env):
             reward = 1.
         else:
             reward = next_state_and_reward[-1]
-        if self.total_steps > 1000:
-            term_steps = 100
-        else:
-            term_steps = 50
+
+        term_steps = 50
         terminated = self.eps_steps > term_steps
         self.total_steps += 1
         return np.array(self.state), reward, terminated, False, None
@@ -318,72 +231,24 @@ class NNEnvironment(gym.Env):
     def render(self):
         pass
 
-    def reset(self, shift=False, **kwargs):
-        if shift:
-            m = (.5 * np.random.rand()) + 1
-            n = (.5 * np.random.rand()) + 1
-        else:
-            m, n = 1., 1.
-        self.state = (np.random.rand(self.obs_size) - m * self.state_offset) * n * self.state_scale
+    def reset(self, **kwargs):
+        self.state = (np.random.rand(self.obs_size) - self.state_offset) * self.state_scale
         self.eps_steps = 0
         return self.state, None
 
 
 
-def get_dataset(test=False):
-    if test:
+def get_dataset(hps):
+    if hps["test"]:
         env_name = "CartPole-v1"
-        # env_name = "Acrobot-v1"
-        # env_name = "Pendulum-v1"
-        # env_name = 'MountainCarContinuous-v0'
-        # env_name = 'MountainCar-v0'
-        # env_name = "GridWorld"
-        # env_name = "SimpleEnv"
-        # env_name = "Reacher-v4"
     else:
-        # env_name = np.random.choice(["RandomEnv", "Acrobot-v1", "Pendulum-v1", 'MountainCarContinuous-v0', 'MountainCar-v0'])
-        # "Acrobot-v1",
-        # env_name = "CartPole-v0"
-        # env_name = "NNEnv"
-        env_name = "FullNNEnv"
-    if env_name == "RandomEnv":
-        env = RandomEnv()
-    elif env_name == "NNEnv":
-        env = NNEnvironment()
+        env_name = hps["env_name"]
+    if env_name == "NNEnv":
+        env = NNEnvironment(hps)
     elif env_name == "FullNNEnv":
-        env = FullNNEnv()
-    elif env_name == "GridWorld":
-        env = grid_world.GridWorld()
-    # elif env_name == "SimpleEnv":
-        #env = simple_env.SimpleEnv()
+        env = FullNNEnv(hps)
     else:
         env = gym.make(env_name)
-    if env_name == "CartPole-v0":
-        if test:
-            print("WARNING - Sampling Cartpole - With no change in the HPs!!!!")
-        else:
-            env.gravity = np.random.rand() * 20. + 5.
-            env.length = np.random.rand() + 2. + 0.5
-            env.masspole = np.random.rand() + 0.1 + 0.05
-            env.masscart = np.random.rand() * 1. + 0.5
-    if env_name == "Pendulum-v1":
-        if not test:
-            env.g = np.random.rand() * 20. + 5.
-            env.m = np.random.rand() * 1. + .5
-            env.l = np.random.rand() * 1. + .5
-    if env_name == 'MountainCarContinuous-v0':
-        if not test:
-            env.power = np.random.rand() * 0.001 + 0.001
-    if env_name == 'MountainCar-v0':
-        if not test:
-            env.force = np.random.rand() * 0.001 + 0.0005
-            env.gravity = np.random.rand() * 0.0025 + 0.00125
-    if env_name == "Acrobot-v1":
-        if not test:
-            env.LINK_LENGTH_1 = np.random.rand() * 2. + .5
-            env.LINK_LENGTH_2 = np.random.rand() * 2. + .5
-            env.LINK_MASS_1 = np.random.rand() * 2. + .5
-            env.LINK_MASS_1 = np.random.rand() * 2. + .5
     return env
 
 
@@ -396,13 +261,16 @@ def get_batch(
         hyperparameters=None,
         **kwargs
 ):
+    if type(hyperparameters["test"]) == str:
+        print("here")
     X = torch.full((seq_len, batch_size, num_features), 0.)
     Y = torch.full((seq_len, batch_size, num_features), float(0.))
 
     if hyperparameters["test"]:
-        X, Y, x_means, x_stds, y_means, y_stds = get_test_batch(seq_len, batch_size, num_features, X, Y)
+        X, Y, x_means, x_stds, y_means, y_stds = get_test_batch(seq_len, batch_size, num_features, X, Y,
+                                                                hyperparameters)
     else:
-        X, Y = get_train_batch(seq_len, batch_size, num_features, X, Y)
+        X, Y = get_train_batch(seq_len, batch_size, num_features, X, Y, hyperparameters)
 
     # TODO get hyperparameters to train len and min trainlen
     perm = torch.randperm(seq_len)
@@ -415,31 +283,9 @@ def get_batch(
         return Batch(x=X, y=Y, target_y=Y), x_means, x_stds, y_means, y_stds
 
 
-def get_test_batch(seq_len, batches, num_features, X, Y):
+def get_test_batch(seq_len, batches, num_features, X, Y, hps):
     for b in range(batches):
-        env = get_dataset(True)
-        env.reset()
-        for i in range(seq_len):
-            high = np.array([4.9, 5., 0.45, 5.0])
-            low = -high
-            random_state = np.random.uniform(low=low, high=high)
-            action = env.action_space.sample()
-            env.env.env.env.state = random_state.copy()
-            observation = env.env.env.env.state  # _get_obs() for Pendulum e.g. state =/= obs
-            obs = torch.full((num_features - 1,), 0.)
-            obs[:observation.shape[0]] = torch.tensor(observation)
-            obs_action_pair = torch.hstack((obs, torch.tensor(action)))
-            batch_features = observation.shape[0] + 1  # action.shape[0]
-            X[i, b] = obs_action_pair * num_features / batch_features
-            observation, reward, terminated, truncated, info = env.step(action)
-
-            obs = torch.full((num_features - 1,), 0.)
-            obs[:observation.shape[0]] = torch.tensor(observation)
-            # obs[-1] = float(terminated or truncated) # TODO if possible for all env
-            next_state_reward_pair = torch.hstack((obs, torch.tensor(reward)))
-            Y[i, b] = next_state_reward_pair
-    """
-        env = get_dataset(True)
+        env = get_dataset(hps)
         observation, info = env.reset()
         steps_after_done = 0
         ep = 0
@@ -484,7 +330,6 @@ def get_test_batch(seq_len, batches, num_features, X, Y):
                     ep += 1
 
         env.close()
-    """
     X[1000:, :, :] = X[1000:, 0, :].unsqueeze(1)
     Y[1000:, :, :] = Y[1000:, 0, :].unsqueeze(1)
     x_means = torch.mean(X[:1000, :, :], dim=0)
@@ -497,33 +342,46 @@ def get_test_batch(seq_len, batches, num_features, X, Y):
     return X, Y, x_means, x_stds, y_means, y_stds
 
 
-def get_train_batch(seq_len, batches, num_features, X, Y):
+def get_train_batch(seq_len, batches, num_features, X, Y, hps):
     for b in range(batches):
-        env = get_dataset(False)
+        env = get_dataset(hps)
+        feature_order = torch.randperm(num_features-3)
+        action_order = torch.randperm(3)
+        observation, info = env.reset()
         for i in range(seq_len):
-            random_state = np.random.uniform(low=-env.max_state, high=env.max_state)
             action = env.action_space.sample()
             if isinstance(action, int):
                 action = [action]
             else:
                 action = list(action)
-            env.state = random_state.copy()
-            observation = env.state  # _get_obs() for Pendulum e.g. state =/= obs
-
             action_length = len(action)
             act = torch.tensor(action + (3 - len(action)) * [0.])
-            obs = torch.full((num_features - 3,), 0.)
+            # Get X value which is state and action
+            # observation is state and filled with -100.
+            # Then shuffled
+            # Action alsways at the end of the pair
+            obs = torch.full((num_features-3,), 0.)
             obs[:observation.shape[0]] = torch.tensor(observation)
-            obs_action_pair = torch.hstack((obs, act))
+            obs_action_pair = torch.hstack((obs[feature_order], act[action_order]))
             batch_features = observation.shape[0] + action_length
             X[i, b] = obs_action_pair  # * num_features/batch_features TODO compare performance woth or Without
+
+            # Same logic for Y with next action and reward
+            # observation is next state and filled with -100.
+            # Then shuffled
+            # Reward alsways at the end of the pair
             observation, reward, terminated, truncated, info = env.step(action)
+
             obs = torch.full((num_features - 3,), 0.)
             obs[:observation.shape[0]] = torch.tensor(observation)
+
             re = torch.full((3,), 0.)
-            re[0:] = torch.tensor(reward)  # Reward always 1-D signal num features always same size as in input
-            next_state_reward_pair = torch.hstack((obs, re))
+            re[-1] = reward  # Reward always 1-D signal num features always same size as in input
+
+            next_state_reward_pair = torch.hstack((obs[feature_order], re))
             Y[i, b] = next_state_reward_pair
+            if terminated:
+                observation, info = env.reset()
 
         env.close()
         # add gaussian noise
@@ -536,46 +394,3 @@ def get_train_batch(seq_len, batches, num_features, X, Y):
         Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
         Y = Y  # + torch.normal(mean=0, std=0.01, size=Y.shape)
     return X, Y
-
-
-"""
-    for b in range(batches):
-        env = get_dataset(False)
-        feature_order = torch.randperm(num_features-1)
-        action_order = torch.randperm(3)
-        observation, info = env.reset()
-        for i in range(seq_len):
-            action = env.action_space.sample()
-            if isinstance(action, int):
-                action = [action]
-            else:
-                action = list(action)
-            action_length = len(action)
-            act = torch.tensor(action) #  + (1 - len(action)) * [0.])
-            # Get X value which is state and action
-            # observation is state and filled with -100.
-            # Then shuffled
-            # Action alsways at the end of the pair
-            obs = torch.full((num_features-1,), 0.)
-            obs[:observation.shape[0]] = torch.tensor(observation)
-            obs_action_pair = torch.hstack((obs[feature_order], act))  #[action_order]))
-            batch_features = observation.shape[0] + action_length
-            X[i, b] = obs_action_pair  # * num_features/batch_features TODO compare performance woth or Without
-
-            # Same logic for Y with next action and reward
-            # observation is next state and filled with -100.
-            # Then shuffled
-            # Reward alsways at the end of the pair
-            observation, reward, terminated, truncated, info = env.step(action)
-
-            obs = torch.full((num_features - 1,), 0.)
-            obs[:observation.shape[0]] = torch.tensor(observation)
-
-            re = torch.full((1,), 0.)
-            re[0:] = torch.tensor(reward)  # Reward always 1-D signal num features always same size as in input
-
-            next_state_reward_pair = torch.hstack((obs[feature_order], re))
-            Y[i, b] = next_state_reward_pair
-            if terminated:
-                observation, info = env.reset(shift=(i > 1000))
-    """

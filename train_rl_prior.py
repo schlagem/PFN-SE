@@ -11,10 +11,7 @@ import matplotlib.pyplot as plt
 from train import train
 import priors.rl_prior
 import encoders
-import positional_encodings
 import utils
-import bar_distribution
-import transformer
 
 # There might be warnings during training, regarding efficiency and a missing GPU, if using CPU
 # We do not care about these for this tutorial
@@ -32,7 +29,7 @@ torch.manual_seed(0)
 
 # maximum Dimension of observations + max dimension of action
 # here dim obs 6 and dim action 2 as acrobot has 2 -> 7
-num_features = 11 + 3
+num_features = 14
 hps = {'test': True}
 batch, x_means, x_stds, y_means, y_stds = priors.rl_prior.get_batch(batch_size=40, seq_len=1001, num_features=num_features, hyperparameters=hps)
 
@@ -88,14 +85,13 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
                      # single_eval_pos_gen defines where to cut off between train and test set
                      # a function that (randomly) returns lengths of the training set
                      # the below definition, will just choose the size uniformly at random up to `max_dataset_size`
-                     # TODO try get_weighted_single_eval_pos_sampler(1000, 500, p=0.4)
                      #single_eval_pos_gen=utils.get_uniform_single_eval_pos_sampler(train_len + 1, min_len=train_len))
                      single_eval_pos_gen=utils.get_weighted_single_eval_pos_sampler(train_len, min_train_len, p=0.4))
 
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/FullNNPriorTest.pt")
+torch.save(trained_model.state_dict(), "trained_models/working_prior_13_dim.pt")
 
 train_x = batch.x[:train_len]
 train_y = batch.y[:train_len]
