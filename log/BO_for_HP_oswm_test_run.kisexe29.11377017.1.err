@@ -1,0 +1,40 @@
+cpu-bind=MASK - kisexe29, task  0  0 [276368]: mask 0xf000f000 set
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/core.py", line 511, in connect_and_handshake
+    sock = socketutil.createSocket(connect=connect_location,
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/socketutil.py", line 307, in createSocket
+    sock.connect(connect)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/core.py", line 2009, in _locateNS
+    proxy._pyroBind()
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/core.py", line 408, in _pyroBind
+    return self.__pyroCreateConnection(True)
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/core.py", line 596, in __pyroCreateConnection
+    connect_and_handshake(conn)
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/core.py", line 549, in connect_and_handshake
+    raise ce
+Pyro4.errors.CommunicationError: cannot connect to ('127.0.0.1', 39777): [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 122, in _run
+    with Pyro4.locateNS(host=self.nameserver, port=self.nameserver_port) as ns:
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/Pyro4/core.py", line 2016, in _locateNS
+    raise e
+Pyro4.errors.NamingError: Failed to locate the nameserver
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/BO_hpbandster.py", line 93, in <module>
+    w.run(background=False)
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 116, in run
+    self._run()
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 127, in _run
+    raise RuntimeError('No nameserver found. Make sure the nameserver is running at that the host (%s) and port (%s) are correct'%(self.nameserver, self.nameserver_port))
+RuntimeError: No nameserver found. Make sure the nameserver is running at that the host (127.0.0.1) and port (39777) are correct
