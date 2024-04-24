@@ -50,8 +50,7 @@ elif 'ib0' in addrs.keys():
 else:
     print('FOUND lo INTERFACE')
     nic = 'lo'
-# host = hpns.nic_name_to_host(nic) # TODO change to this from local host
-host = "127.0.0.1"
+host = hpns.nic_name_to_host(nic) # TODO change to this from local host
 
 
 def get_cs_space():
@@ -87,7 +86,7 @@ def get_cs_space():
 if args.worker:
     # Longer sleep as cluster might need to start nodes
     time.sleep(10)   # short artificial delay to make sure the nameserver is already running
-    w = OSWMWorker(run_id=args.run_id, host=host)  # TODO change to OWSM worker
+    w = OSWMWorker(run_id=args.run_id, host=host)
     w.load_nameserver_credentials(working_directory=args.shared_directory)
     print("Worker starting at:", time.strftime("%Y%m%d-%H%M%S"))
     w.run(background=False)
