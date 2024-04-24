@@ -28,7 +28,7 @@ class OSWMWorker(Worker):
         min_train_len = 500
         max_dataset_size = 1001
         epochs = int(budget)
-        steps_per_epoch = 10  # TODO change to 100 when not debug
+        steps_per_epoch = 100
 
         train_result = train(
             # the prior is the key. It defines what we train on. You should hand over a dataloader here
@@ -55,7 +55,7 @@ class OSWMWorker(Worker):
         final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
         # TODO disable debug
-        results = val_loss_table(trained_model, debug_truncation=True)
+        results = val_loss_table(trained_model, debug_truncation=False)
         cartpole_loss = (results["CartPole-v1"]["1.0"]["loss"] +
                         results["CartPole-v1"]["0.5"]["loss"] +
                         results["CartPole-v1"]["0.0"]["loss"]) / 3.
@@ -73,7 +73,14 @@ class OSWMWorker(Worker):
         over_all_mean_loss = (cartpole_loss + reacher_loss + pendulum_loss + simpleenvloss) / 4.
         score = over_all_mean_loss
         run_time = time.time() - start_time
+        info_dict = {"run_time": run_time,
+                     "cartpole_loss": cartpole_loss,
+                     "reacher_loss": reacher_loss,
+                     "pendulum_loss": pendulum_loss,
+                     "simpleenv_loss": simpleenvloss,
+                     "train_loss": final_mean_loss
+                     }
         return ({
             'loss': float(score),  # this is the a mandatory field to run hyperband
-            'info': run_time  # can be used for any user-defined information - also mandatory
+            'info': info_dict  # can be used for any user-defined information - also mandatory
         })
