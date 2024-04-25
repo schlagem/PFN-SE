@@ -1,0 +1,69 @@
+cpu-bind=MASK - kisexe09, task  0  0 [113049]: mask 0xf000c0c0 set
+INFO:hpbandster:DISPATCHER: started the 'discover_worker' thread
+INFO:hpbandster:DISPATCHER: started the 'job_runner' thread
+INFO:hpbandster:DISPATCHER: Pyro daemon running on 10.5.166.119:42727
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe20.67016
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe18.9082
+INFO:hpbandster:HBMASTER: adjusted queue size to (1, 2)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe25.21586
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe20.67015
+INFO:hpbandster:HBMASTER: adjusted queue size to (3, 4)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe25.21587
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe25.21584
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:HBMASTER: adjusted queue size to (5, 6)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_debug_test.worker.kisexe25.21585
+INFO:hpbandster:HBMASTER: adjusted queue size to (6, 7)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:HBMASTER: starting run at 1713955629.5083249
+WARNING:hpbandster:job (3, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 33, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 574, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (0, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 33, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 574, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (11, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 33, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 574, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+slurmstepd-kisexe09: error: *** JOB 11378897 ON kisexe09 CANCELLED AT 2024-04-25T06:46:47 DUE TO TIME LIMIT ***
