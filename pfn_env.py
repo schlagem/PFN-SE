@@ -1,6 +1,4 @@
 import math
-from typing import Optional, Union, List
-
 import gymnasium as gym
 
 
@@ -42,6 +40,10 @@ def get_done_func(env_name):
         def simple_env_reset(state, steps):
             return steps > 20
         return simple_env_reset
+    elif env_name == "Reacher-v4":
+        def reacher_reset(state, steps):
+            return steps > 50
+        return reacher_reset
     else:
         raise NotImplementedError
 
@@ -130,7 +132,7 @@ class ArtificialEnv(gym.Env):
         print(
             f"Using a Transformer with {sum(p.numel() for p in self.pfn.parameters()) / 1000 / 1000:.{2}f} M parameters"
         )
-        self.pfn.load_state_dict(torch.load("trained_models/working_prior_13_dim.pt"))
+        self.pfn.load_state_dict(torch.load("trained_models/first_incumbent.pt"))
         self.pfn.eval()
 
         self.state = None
@@ -149,12 +151,6 @@ class ArtificialEnv(gym.Env):
         obs[:self.state.shape[0]] = torch.tensor(self.state)
         obs = torch.hstack((obs, act))
 
-        # normalize state
-        #obs = torch.zeros(7)
-        #obs[:self.state.shape[0]] = torch.tensor(self.state)
-        #obs[-1] = a
-        # print("State:", obs)
-        # obs = obs * 7 / (self.state.shape[0] + 1)  # TODO detect automatically
         norm_state_action = torch.nan_to_num((obs - self.x_mean) / self.x_std)
         self.train_x[1000, :, :] = norm_state_action
         with torch.no_grad():
