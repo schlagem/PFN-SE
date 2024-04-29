@@ -7,6 +7,7 @@ import priors.rl_prior
 import encoders
 import utils
 from calc_val_loss_table import val_loss_table
+import math
 
 
 class OSWMWorker(Worker):
@@ -14,8 +15,8 @@ class OSWMWorker(Worker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # setting torch num of cores
-        torch.set_num_threads(8)
-        torch.set_num_interop_threads(8)
+        # torch.set_num_threads(8)
+        # torch.set_num_interop_threads(8) TODO
         self.run_id = kwargs.get('run_id', None)
 
     def compute(self, config_id, config, budget, working_directory):
@@ -28,7 +29,7 @@ class OSWMWorker(Worker):
         min_train_len = 500
         max_dataset_size = 1001
         epochs = int(budget)
-        steps_per_epoch = 10 # TODO change to 100
+        steps_per_epoch = 10 # 0
 
         train_result = train(
             # the prior is the key. It defines what we train on. You should hand over a dataloader here
@@ -72,6 +73,8 @@ class OSWMWorker(Worker):
         # TODO weight different losses or exclude some
         over_all_mean_loss = (cartpole_loss + reacher_loss + pendulum_loss + simpleenvloss) / 4.
         score = over_all_mean_loss
+        if math.isnan(score):
+            score = 1000.
         run_time = time.time() - start_time
         info_dict = {"run_time": run_time,
                      "cartpole_loss": cartpole_loss,
