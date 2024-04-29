@@ -55,7 +55,7 @@ class OSWMWorker(Worker):
         final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
         # TODO disable debug
-        results = val_loss_table(trained_model, debug_truncation=False)
+        results = val_loss_table(trained_model, debug_truncation=True)
         cartpole_loss = (results["CartPole-v1"]["1.0"]["loss"] +
                         results["CartPole-v1"]["0.5"]["loss"] +
                         results["CartPole-v1"]["0.0"]["loss"]) / 3.

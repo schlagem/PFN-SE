@@ -50,7 +50,7 @@ elif 'ib0' in addrs.keys():
 else:
     print('FOUND lo INTERFACE')
     nic = 'lo'
-host = hpns.nic_name_to_host(nic) # TODO change to this from local host
+host = hpns.nic_name_to_host(nic)
 
 
 def get_cs_space():

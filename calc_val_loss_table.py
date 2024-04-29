@@ -196,7 +196,7 @@ def val_loss_table(model, debug_truncation=False):
     return summary_dict
 
 
-def build_model():
+def get_model():
     num_features = 14
     # Loss to be used for evaluation of model
     criterion = nn.MSELoss(reduction='none')
@@ -217,13 +217,13 @@ def build_model():
     print(
         f"Using a Transformer with {sum(p.numel() for p in pfn.parameters()) / 1000 / 1000:.{2}f} M parameters"
     )
-    pfn.load_state_dict(torch.load("trained_models/working_prior_13_dim.pt"))
+    pfn.load_state_dict(torch.load("trained_models/first_incumbent.pt"))
     pfn.eval()
     return pfn
 
 
 if __name__ == '__main__':
-    results = val_loss_table(build_model())
+    results = val_loss_table(get_model())
     # TODO change save name to show checkpoint name
     with open('val_transitions/scores/validation_scores.json', 'w') as fp:
         json.dump(results, fp, indent=4)
