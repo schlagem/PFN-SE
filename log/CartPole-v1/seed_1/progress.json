@@ -1,0 +1,107 @@
+{"eval/mean_reward": 9.5, "eval/mean_ep_length": 9.5, "time/total_timesteps": 100}
+{"eval/mean_reward": 8.8, "eval/mean_ep_length": 8.8, "time/total_timesteps": 200}
+{"eval/mean_reward": 9.2, "eval/mean_ep_length": 9.2, "time/total_timesteps": 300}
+{"eval/mean_reward": 9.1, "eval/mean_ep_length": 9.1, "time/total_timesteps": 400}
+{"eval/mean_reward": 9.4, "eval/mean_ep_length": 9.4, "time/total_timesteps": 500}
+{"eval/mean_reward": 9.3, "eval/mean_ep_length": 9.3, "time/total_timesteps": 600}
+{"eval/mean_reward": 9.1, "eval/mean_ep_length": 9.1, "time/total_timesteps": 700}
+{"eval/mean_reward": 9.3, "eval/mean_ep_length": 9.3, "time/total_timesteps": 800}
+{"eval/mean_reward": 9.5, "eval/mean_ep_length": 9.5, "time/total_timesteps": 900}
+{"eval/mean_reward": 9.0, "eval/mean_ep_length": 9.0, "time/total_timesteps": 1000}
+{"eval/mean_reward": 9.2, "eval/mean_ep_length": 9.2, "time/total_timesteps": 1100}
+{"eval/mean_reward": 9.6, "eval/mean_ep_length": 9.6, "time/total_timesteps": 1200}
+{"eval/mean_reward": 9.0, "eval/mean_ep_length": 9.0, "time/total_timesteps": 1300}
+{"eval/mean_reward": 9.0, "eval/mean_ep_length": 9.0, "time/total_timesteps": 1400}
+{"eval/mean_reward": 9.9, "eval/mean_ep_length": 9.9, "time/total_timesteps": 1500}
+{"eval/mean_reward": 9.0, "eval/mean_ep_length": 9.0, "time/total_timesteps": 1600}
+{"eval/mean_reward": 9.4, "eval/mean_ep_length": 9.4, "time/total_timesteps": 1700}
+{"eval/mean_reward": 9.2, "eval/mean_ep_length": 9.2, "time/total_timesteps": 1800}
+{"eval/mean_reward": 9.1, "eval/mean_ep_length": 9.1, "time/total_timesteps": 1900}
+{"eval/mean_reward": 9.2, "eval/mean_ep_length": 9.2, "time/total_timesteps": 2000}
+{"time/iterations": 1, "rollout/ep_rew_mean": 21.425531914893618, "rollout/ep_len_mean": 21.425531914893618, "time/fps": 3306, "time/time_elapsed": 0, "time/total_timesteps": 2048}
+{"train/learning_rate": 0.0003, "train/entropy_loss": -0.6862083302810789, "train/policy_gradient_loss": -0.0152048023082898, "train/value_loss": 49.71051341295242, "train/approx_kl": 0.009328426793217659, "train/clip_fraction": 0.098486328125, "train/loss": 5.866763591766357, "train/explained_variance": 0.0012754201889038086, "train/n_updates": 10, "train/clip_range": 0.2, "eval/mean_reward": 125.7, "eval/mean_ep_length": 125.7, "time/total_timesteps": 2100}
+{"eval/mean_reward": 104.0, "eval/mean_ep_length": 104.0, "time/total_timesteps": 2200}
+{"eval/mean_reward": 203.8, "eval/mean_ep_length": 203.8, "time/total_timesteps": 2300}
+{"eval/mean_reward": 129.5, "eval/mean_ep_length": 129.5, "time/total_timesteps": 2400}
+{"eval/mean_reward": 113.1, "eval/mean_ep_length": 113.1, "time/total_timesteps": 2500}
+{"eval/mean_reward": 130.0, "eval/mean_ep_length": 130.0, "time/total_timesteps": 2600}
+{"eval/mean_reward": 70.8, "eval/mean_ep_length": 70.8, "time/total_timesteps": 2700}
+{"eval/mean_reward": 82.3, "eval/mean_ep_length": 82.3, "time/total_timesteps": 2800}
+{"eval/mean_reward": 120.3, "eval/mean_ep_length": 120.3, "time/total_timesteps": 2900}
+{"eval/mean_reward": 169.9, "eval/mean_ep_length": 169.9, "time/total_timesteps": 3000}
+{"eval/mean_reward": 227.4, "eval/mean_ep_length": 227.4, "time/total_timesteps": 3100}
+{"eval/mean_reward": 71.2, "eval/mean_ep_length": 71.2, "time/total_timesteps": 3200}
+{"eval/mean_reward": 183.4, "eval/mean_ep_length": 183.4, "time/total_timesteps": 3300}
+{"eval/mean_reward": 80.2, "eval/mean_ep_length": 80.2, "time/total_timesteps": 3400}
+{"eval/mean_reward": 117.5, "eval/mean_ep_length": 117.5, "time/total_timesteps": 3500}
+{"eval/mean_reward": 230.6, "eval/mean_ep_length": 230.6, "time/total_timesteps": 3600}
+{"eval/mean_reward": 166.1, "eval/mean_ep_length": 166.1, "time/total_timesteps": 3700}
+{"eval/mean_reward": 176.1, "eval/mean_ep_length": 176.1, "time/total_timesteps": 3800}
+{"eval/mean_reward": 67.5, "eval/mean_ep_length": 67.5, "time/total_timesteps": 3900}
+{"eval/mean_reward": 114.1, "eval/mean_ep_length": 114.1, "time/total_timesteps": 4000}
+{"time/iterations": 2, "rollout/ep_rew_mean": 26.86, "rollout/ep_len_mean": 26.86, "time/fps": 991, "time/time_elapsed": 4, "time/total_timesteps": 4096}
+{"train/learning_rate": 0.0003, "train/entropy_loss": -0.6651409866288305, "train/policy_gradient_loss": -0.016340390166442377, "train/value_loss": 38.570735168457034, "train/approx_kl": 0.008541055023670197, "train/clip_fraction": 0.05341796875, "train/loss": 12.374661445617676, "train/explained_variance": 0.030314862728118896, "train/n_updates": 20, "train/clip_range": 0.2, "eval/mean_reward": 336.2, "eval/mean_ep_length": 336.2, "time/total_timesteps": 4100}
+{"eval/mean_reward": 359.6, "eval/mean_ep_length": 359.6, "time/total_timesteps": 4200}
+{"eval/mean_reward": 360.6, "eval/mean_ep_length": 360.6, "time/total_timesteps": 4300}
+{"eval/mean_reward": 433.2, "eval/mean_ep_length": 433.2, "time/total_timesteps": 4400}
+{"eval/mean_reward": 332.7, "eval/mean_ep_length": 332.7, "time/total_timesteps": 4500}
+{"eval/mean_reward": 329.7, "eval/mean_ep_length": 329.7, "time/total_timesteps": 4600}
+{"eval/mean_reward": 446.2, "eval/mean_ep_length": 446.2, "time/total_timesteps": 4700}
+{"eval/mean_reward": 360.2, "eval/mean_ep_length": 360.2, "time/total_timesteps": 4800}
+{"eval/mean_reward": 299.4, "eval/mean_ep_length": 299.4, "time/total_timesteps": 4900}
+{"eval/mean_reward": 307.0, "eval/mean_ep_length": 307.0, "time/total_timesteps": 5000}
+{"eval/mean_reward": 336.9, "eval/mean_ep_length": 336.9, "time/total_timesteps": 5100}
+{"eval/mean_reward": 295.1, "eval/mean_ep_length": 295.1, "time/total_timesteps": 5200}
+{"eval/mean_reward": 329.6, "eval/mean_ep_length": 329.6, "time/total_timesteps": 5300}
+{"eval/mean_reward": 363.5, "eval/mean_ep_length": 363.5, "time/total_timesteps": 5400}
+{"eval/mean_reward": 413.8, "eval/mean_ep_length": 413.8, "time/total_timesteps": 5500}
+{"eval/mean_reward": 403.3, "eval/mean_ep_length": 403.3, "time/total_timesteps": 5600}
+{"eval/mean_reward": 363.5, "eval/mean_ep_length": 363.5, "time/total_timesteps": 5700}
+{"eval/mean_reward": 362.8, "eval/mean_ep_length": 362.8, "time/total_timesteps": 5800}
+{"eval/mean_reward": 401.3, "eval/mean_ep_length": 401.3, "time/total_timesteps": 5900}
+{"eval/mean_reward": 311.1, "eval/mean_ep_length": 311.1, "time/total_timesteps": 6000}
+{"eval/mean_reward": 324.2, "eval/mean_ep_length": 324.2, "time/total_timesteps": 6100}
+{"time/iterations": 3, "rollout/ep_rew_mean": 38.11, "rollout/ep_len_mean": 38.11, "time/fps": 486, "time/time_elapsed": 12, "time/total_timesteps": 6144}
+{"train/learning_rate": 0.0003, "train/entropy_loss": -0.6362716102972626, "train/policy_gradient_loss": -0.01737352437194204, "train/value_loss": 55.323200571537015, "train/approx_kl": 0.009312093257904053, "train/clip_fraction": 0.0841796875, "train/loss": 20.722312927246094, "train/explained_variance": 0.2257634401321411, "train/n_updates": 30, "train/clip_range": 0.2, "eval/mean_reward": 387.4, "eval/mean_ep_length": 387.4, "time/total_timesteps": 6200}
+{"eval/mean_reward": 421.1, "eval/mean_ep_length": 421.1, "time/total_timesteps": 6300}
+{"eval/mean_reward": 371.2, "eval/mean_ep_length": 371.2, "time/total_timesteps": 6400}
+{"eval/mean_reward": 226.2, "eval/mean_ep_length": 226.2, "time/total_timesteps": 6500}
+{"eval/mean_reward": 309.3, "eval/mean_ep_length": 309.3, "time/total_timesteps": 6600}
+{"eval/mean_reward": 424.2, "eval/mean_ep_length": 424.2, "time/total_timesteps": 6700}
+{"eval/mean_reward": 296.9, "eval/mean_ep_length": 296.9, "time/total_timesteps": 6800}
+{"eval/mean_reward": 274.2, "eval/mean_ep_length": 274.2, "time/total_timesteps": 6900}
+{"eval/mean_reward": 277.9, "eval/mean_ep_length": 277.9, "time/total_timesteps": 7000}
+{"eval/mean_reward": 189.1, "eval/mean_ep_length": 189.1, "time/total_timesteps": 7100}
+{"eval/mean_reward": 213.0, "eval/mean_ep_length": 213.0, "time/total_timesteps": 7200}
+{"eval/mean_reward": 311.6, "eval/mean_ep_length": 311.6, "time/total_timesteps": 7300}
+{"eval/mean_reward": 326.6, "eval/mean_ep_length": 326.6, "time/total_timesteps": 7400}
+{"eval/mean_reward": 478.3, "eval/mean_ep_length": 478.3, "time/total_timesteps": 7500}
+{"eval/mean_reward": 313.4, "eval/mean_ep_length": 313.4, "time/total_timesteps": 7600}
+{"eval/mean_reward": 366.8, "eval/mean_ep_length": 366.8, "time/total_timesteps": 7700}
+{"eval/mean_reward": 322.4, "eval/mean_ep_length": 322.4, "time/total_timesteps": 7800}
+{"eval/mean_reward": 390.9, "eval/mean_ep_length": 390.9, "time/total_timesteps": 7900}
+{"eval/mean_reward": 391.0, "eval/mean_ep_length": 391.0, "time/total_timesteps": 8000}
+{"eval/mean_reward": 325.1, "eval/mean_ep_length": 325.1, "time/total_timesteps": 8100}
+{"time/iterations": 4, "rollout/ep_rew_mean": 48.71, "rollout/ep_len_mean": 48.71, "time/fps": 405, "time/time_elapsed": 20, "time/total_timesteps": 8192}
+{"train/learning_rate": 0.0003, "train/entropy_loss": -0.6093520600348711, "train/policy_gradient_loss": -0.017496430643950588, "train/value_loss": 59.58960162997246, "train/approx_kl": 0.008108754642307758, "train/clip_fraction": 0.06787109375, "train/loss": 23.050466537475586, "train/explained_variance": 0.24497437477111816, "train/n_updates": 40, "train/clip_range": 0.2, "eval/mean_reward": 355.8, "eval/mean_ep_length": 355.8, "time/total_timesteps": 8200}
+{"eval/mean_reward": 446.8, "eval/mean_ep_length": 446.8, "time/total_timesteps": 8300}
+{"eval/mean_reward": 437.8, "eval/mean_ep_length": 437.8, "time/total_timesteps": 8400}
+{"eval/mean_reward": 354.2, "eval/mean_ep_length": 354.2, "time/total_timesteps": 8500}
+{"eval/mean_reward": 382.1, "eval/mean_ep_length": 382.1, "time/total_timesteps": 8600}
+{"eval/mean_reward": 327.7, "eval/mean_ep_length": 327.7, "time/total_timesteps": 8700}
+{"eval/mean_reward": 301.4, "eval/mean_ep_length": 301.4, "time/total_timesteps": 8800}
+{"eval/mean_reward": 360.2, "eval/mean_ep_length": 360.2, "time/total_timesteps": 8900}
+{"eval/mean_reward": 389.7, "eval/mean_ep_length": 389.7, "time/total_timesteps": 9000}
+{"eval/mean_reward": 340.3, "eval/mean_ep_length": 340.3, "time/total_timesteps": 9100}
+{"eval/mean_reward": 400.5, "eval/mean_ep_length": 400.5, "time/total_timesteps": 9200}
+{"eval/mean_reward": 439.0, "eval/mean_ep_length": 439.0, "time/total_timesteps": 9300}
+{"eval/mean_reward": 339.3, "eval/mean_ep_length": 339.3, "time/total_timesteps": 9400}
+{"eval/mean_reward": 423.0, "eval/mean_ep_length": 423.0, "time/total_timesteps": 9500}
+{"eval/mean_reward": 387.9, "eval/mean_ep_length": 387.9, "time/total_timesteps": 9600}
+{"eval/mean_reward": 366.6, "eval/mean_ep_length": 366.6, "time/total_timesteps": 9700}
+{"eval/mean_reward": 430.8, "eval/mean_ep_length": 430.8, "time/total_timesteps": 9800}
+{"eval/mean_reward": 393.8, "eval/mean_ep_length": 393.8, "time/total_timesteps": 9900}
+{"eval/mean_reward": 393.1, "eval/mean_ep_length": 393.1, "time/total_timesteps": 10000}
+{"eval/mean_reward": 402.2, "eval/mean_ep_length": 402.2, "time/total_timesteps": 10100}
+{"eval/mean_reward": 404.9, "eval/mean_ep_length": 404.9, "time/total_timesteps": 10200}
+{"time/iterations": 5, "rollout/ep_rew_mean": 63.39, "rollout/ep_len_mean": 63.39, "time/fps": 347, "time/time_elapsed": 29, "time/total_timesteps": 10240}

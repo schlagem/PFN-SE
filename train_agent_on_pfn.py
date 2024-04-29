@@ -1,45 +1,44 @@
 from pfn_env import ArtificialEnv
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DQN
 import gymnasium as gym
 import argparse
 import numpy as np
 import torch
 import random
+from stable_baselines3.common.callbacks import EvalCallback
+import os
+
+from stable_baselines3.common.logger import configure
 
 
-def test_policy(policy, seed):
-    test_episode_num = 10
-    env = gym.make("CartPole-v1")
-    r_list = []
-    for i in range(test_episode_num):
-        s = seed + (i * 10)
-        obs, info = env.reset(seed=s)
-        done = False
-        r_sum = 0.
-        while not done:
-            action, _ = policy.predict(obs, deterministic=True)
-            obs, reward, term, trunc, _ = env.step(action)
-            done = term or trunc
-            r_sum += reward
-        r_list.append(r_sum)
-    return sum(r_list) / 10.
-
-
-def training_callback(one, two):
-    # These are the steps taken since beginning of training
-    # Later for SE training this call back should test every 1000 or so to get measure of real performance
-    if one["self"].__dict__["num_timesteps"] % 2048 == 0 or one["self"].__dict__["num_timesteps"] == 1:
-        score = test_policy(one["self"], one["self"].__dict__["seed"])
-        print(score)
-    return one, two
+def generate_log_dir_path(env_name, seed):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    # Make directory for env if not existing
+    dir_path = os.path.join(dir_path, "log")
+    env_path = os.path.join(dir_path, env_name)
+    seed_path = os.path.join(env_path, "seed_" + str(seed))
+    return seed_path
 
 
 def train_policy_on_se(env_name, time_steps, seed):
     # Parallel environments
-    env = ArtificialEnv(env_name)
-    # env = gym.make(env_name)
+    # env = ArtificialEnv(env_name)
+    env = gym.make(env_name)
+    path = generate_log_dir_path(env_name, seed)
+
     model = PPO("MlpPolicy", env, verbose=0, seed=seed)
-    model.learn(total_timesteps=time_steps, callback=training_callback, progress_bar=True)
+
+    # Separate evaluation env
+    eval_env = gym.make(env_name)
+    # Use deterministic actions for evaluation
+    eval_callback = EvalCallback(eval_env, best_model_save_path=path,
+                                 log_path=path, eval_freq=100,
+                                 deterministic=True, render=False, n_eval_episodes=10)
+
+    new_logger = configure(path, ["json", "stdout"])
+    model.set_logger(new_logger)
+
+    model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=True)
     return model
 
 
