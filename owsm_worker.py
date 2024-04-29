@@ -28,7 +28,7 @@ class OSWMWorker(Worker):
         min_train_len = 500
         max_dataset_size = 1001
         epochs = int(budget)
-        steps_per_epoch = 100
+        steps_per_epoch = 10 # TODO change to 100
 
         train_result = train(
             # the prior is the key. It defines what we train on. You should hand over a dataloader here
