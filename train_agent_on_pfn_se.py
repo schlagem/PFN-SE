@@ -217,7 +217,7 @@ real_env = gym.make("CartPole-v0")
 # real_env = gym.make("LunarLander-v2")
 # real_env = grid_world.GridWorld()
 # real_env = gym.make("Acrobot-v1")
-env = ArtificialEnv()
+env = ArtificialEnv("CartPole-v0")
 # env = grid_world.GridWorld()
 # env = gym.make("CartPole-v0")
 
@@ -241,7 +241,7 @@ for i_episode in range(num_episodes):
         observation, reward, terminated, truncated, _ = env.step(action.item())
 
         # Save to plot histogram ogf visited states
-        obs_plus_reward = torch.tensor(np.append(observation, np.array([reward]))).unsqueeze(0)
+        obs_plus_reward = torch.tensor(np.append(observation, np.array([reward.cpu()]))).unsqueeze(0)
         states_visited = torch.cat((states_visited, obs_plus_reward), 0)
 
         sum_reward += reward

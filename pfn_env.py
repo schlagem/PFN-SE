@@ -14,9 +14,8 @@ import simple_env
 # if GPU is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 def get_done_func(env_name):
-    if env_name == "CartPole-v1":
+    if env_name == "CartPole-v1" or env_name == "CartPole-v0":
         def cartpole_reset(state, steps):
             # Limits for resetting
             theta_threshold_radians = 12 * 2 * math.pi / 360
@@ -75,7 +74,12 @@ class ArtificialEnv(gym.Env):
             ep = 0
             steps_after_done = 0
             for i in range(1001):
-                action = self.real_env.action_space.sample()
+                if ep <= 7:
+                    action = 0
+                elif ep <= 14:
+                    action = 1
+                else:
+                    action = self.real_env.action_space.sample()
                 action_array = np.array([action])
                 act = torch.full((3,), 0.)
                 act[:action_array.shape[0]] = torch.tensor(action_array)
@@ -105,6 +109,9 @@ class ArtificialEnv(gym.Env):
                         ep += 1
                         print(f"Episode {ep}")
 
+        self.train_y = self.train_y.to(device)
+        self.train_x = self.train_x.to(device)
+
         # Normalize the columns to 0 mean and 1 Variance
         self.x_mean = torch.mean(self.train_x[:1000, :], dim=0)
         self.x_std = torch.std(self.train_x[:1000, :], dim=0)
@@ -128,11 +135,11 @@ class ArtificialEnv(gym.Env):
             y_encoder_generator=encoders.Linear,
             decoder_dict={},
             extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
-        )
+        ).to(device)
         print(
             f"Using a Transformer with {sum(p.numel() for p in self.pfn.parameters()) / 1000 / 1000:.{2}f} M parameters"
         )
-        self.pfn.load_state_dict(torch.load("trained_models/first_incumbent.pt"))
+        self.pfn.load_state_dict(torch.load("saved_models/first_incumbent.pt"))
         self.pfn.eval()
 
         self.state = None
@@ -149,16 +156,16 @@ class ArtificialEnv(gym.Env):
 
         obs = torch.full((14 - 3,), 0.)
         obs[:self.state.shape[0]] = torch.tensor(self.state)
-        obs = torch.hstack((obs, act))
+        obs = torch.hstack((obs, act)).to(device)
 
         norm_state_action = torch.nan_to_num((obs - self.x_mean) / self.x_std)
-        self.train_x[1000, :, :] = norm_state_action
+        self.train_x[1000, :, :] = norm_state_action.to(device)
         with torch.no_grad():
             logits = self.pfn(self.train_x[:1000], self.train_y[:1000], self.train_x[:])
             ns = logits[1000, :, :].detach().clone() * self.y_std + self.y_mean
             ns = torch.mean(ns, dim=0)  # TODO discrete steps
 
-        self.state = ns[:self.state.shape[0]].numpy()
+        self.state = ns[:self.state.shape[0]].cpu().numpy()
         re = torch.nan_to_num(ns[-1], nan=-1)  # TODO if this accurate enough
 
         done = self.done_func(self.state, self.episode_steps)

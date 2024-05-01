@@ -22,8 +22,8 @@ def generate_log_dir_path(env_name, seed):
 
 def train_policy_on_se(env_name, time_steps, seed):
     # Parallel environments
-    # env = ArtificialEnv(env_name)
-    env = gym.make(env_name)
+    env = ArtificialEnv(env_name)
+    # env = gym.make(env_name)
     path = generate_log_dir_path(env_name, seed)
     monitor_env = Monitor(env, filename=path)
 
@@ -42,7 +42,7 @@ def train_policy_on_se(env_name, time_steps, seed):
     new_logger = configure(path, ["json"])
     model.set_logger(new_logger)
 
-    model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=False)
+    model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=True)
     print(monitor_env.get_episode_rewards())
     return model
 

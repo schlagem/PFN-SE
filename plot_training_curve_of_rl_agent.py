@@ -43,8 +43,8 @@ def plot_agent_trained_on_oswm(env_name):
                      means.mean(axis=0) + means.std(axis=0),
                      color='tab:blue', alpha=0.15)
 
-    for m, t, in zip(train_means, train_time_steps):
-        plt.plot(t, m)
+    #for m, t, in zip(train_means, train_time_steps):
+    #    plt.plot(t, m)
     """
     plt.plot(train_time_steps, train_means.mean(axis=0), label="Mean Test reward")
     plt.fill_between(train_time_steps,
