@@ -6,8 +6,8 @@ import numpy as np
 import torch
 import random
 from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.monitor import Monitor
 import os
-
 from stable_baselines3.common.logger import configure
 
 
@@ -25,20 +25,25 @@ def train_policy_on_se(env_name, time_steps, seed):
     # env = ArtificialEnv(env_name)
     env = gym.make(env_name)
     path = generate_log_dir_path(env_name, seed)
+    monitor_env = Monitor(env, filename=path)
 
-    model = PPO("MlpPolicy", env, verbose=0, seed=seed)
+
+    model = PPO("MlpPolicy", monitor_env, verbose=0, seed=seed, n_steps=128, stats_window_size=5)
 
     # Separate evaluation env
     eval_env = gym.make(env_name)
+    monitor_eval_env = Monitor(eval_env, allow_early_resets=True)
+
     # Use deterministic actions for evaluation
-    eval_callback = EvalCallback(eval_env, best_model_save_path=path,
+    eval_callback = EvalCallback(monitor_eval_env, best_model_save_path=path,
                                  log_path=path, eval_freq=100,
                                  deterministic=True, render=False, n_eval_episodes=10)
 
-    new_logger = configure(path, ["json", "stdout"])
+    new_logger = configure(path, ["json"])
     model.set_logger(new_logger)
 
-    model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=True)
+    model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=False)
+    print(monitor_env.get_episode_rewards())
     return model
 
 
