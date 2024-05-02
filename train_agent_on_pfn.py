@@ -9,6 +9,7 @@ from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.monitor import Monitor
 import os
 from stable_baselines3.common.logger import configure
+import simple_env
 
 
 def generate_log_dir_path(env_name, seed):
@@ -31,7 +32,10 @@ def train_policy_on_se(env_name, time_steps, seed):
     model = PPO("MlpPolicy", monitor_env, verbose=0, seed=seed, n_steps=128, stats_window_size=5)
 
     # Separate evaluation env
-    eval_env = gym.make(env_name)
+    if env_name == "SimpleEnv":
+        eval_env = simple_env.SimpleEnv()
+    else:
+        eval_env = gym.make(env_name)
     monitor_eval_env = Monitor(eval_env, allow_early_resets=True)
 
     # Use deterministic actions for evaluation
@@ -50,7 +54,7 @@ def train_policy_on_se(env_name, time_steps, seed):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Training policy on One-Shot World Model')
     parser.add_argument("--env", type=str, required=True)
-    parser.add_argument("--timestep", type=int, default=10000)
+    parser.add_argument("--timestep", type=int, default=50000)
     parser.add_argument("--seed", type=int)
 
     args = parser.parse_args()

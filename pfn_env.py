@@ -74,13 +74,11 @@ class ArtificialEnv(gym.Env):
             ep = 0
             steps_after_done = 0
             for i in range(1001):
-                if ep <= 7:
-                    action = 0
-                elif ep <= 14:
-                    action = 1
+                action = self.real_env.action_space.sample()
+                if isinstance(action, int):
+                    action_array = np.array([action])  # TODO detect action type
                 else:
-                    action = self.real_env.action_space.sample()
-                action_array = np.array([action])
+                    action_array = action
                 act = torch.full((3,), 0.)
                 act[:action_array.shape[0]] = torch.tensor(action_array)
 
@@ -101,9 +99,9 @@ class ArtificialEnv(gym.Env):
                 # obs[-1] = float(terminated or truncated) # TODO if possible for all env
                 next_state_reward_pair = torch.hstack((obs, torch.tensor(reward)))
                 self.train_y[i, b] = next_state_reward_pair
-                if terminated or truncated or i % 49 == 0:
+                if terminated or truncated: #  or i > 50:
                     steps_after_done += 1
-                    if steps_after_done >= 7:
+                    if steps_after_done >= 0:
                         steps_after_done = 0
                         observation, info = self.real_env.reset()
                         ep += 1
@@ -150,7 +148,10 @@ class ArtificialEnv(gym.Env):
         if self.state is None:
             raise gym.error.ResetNeeded
 
-        action_array = np.array([a])
+        if isinstance(a, int):
+            action_array = np.array([a])  # TODO detect action type
+        else:
+            action_array = a
         act = torch.full((3,), 0.)
         act[:action_array.shape[0]] = torch.tensor(action_array)
 
