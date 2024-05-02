@@ -33,6 +33,9 @@ parser.add_argument('--run_id', type=str,
 # parser.add_argument('--nic_name', type=str, help='Which network interface to use for communication.') # not needed
 parser.add_argument('--shared_directory', type=str,
                     help='A directory that is accessible for all processes, e.g. a NFS share.')
+parser.add_argument('--no_norm', type=bool, help='To norm the X and Y in OSWM training or not.', default=False)
+parser.add_argument('--vel_weight', type=bool, help='To weight vel terms more in val loss.', default=False)
+
 
 args = parser.parse_args()
 
@@ -53,7 +56,7 @@ else:
 host = hpns.nic_name_to_host(nic)
 
 
-def get_cs_space():
+def get_cs_space(no_norm):
     cs = ConfigurationSpace()
 
     cs.add_hyperparameter(CategoricalHyperparameter("env_name", choices=["NNEnv", "FullNNEnv"]))
@@ -80,13 +83,14 @@ def get_cs_space():
     cs.add_hyperparameter(CategoricalHyperparameter("use_res_connection", choices=[True, False]))
     # work around constant does not work with bool
     cs.add_hyperparameter(CategoricalHyperparameter("test", choices=[False]))
+    cs.add_hyperparameter(CategoricalHyperparameter("no_norm", choices=[no_norm]))
     return cs
 
 
 if args.worker:
     # Longer sleep as cluster might need to start nodes
     time.sleep(10)   # short artificial delay to make sure the nameserver is already running
-    w = OSWMWorker(run_id=args.run_id, host=host)
+    w = OSWMWorker(run_id=args.run_id, host=host, vel_weight=args.vel_weight)
     w.load_nameserver_credentials(working_directory=args.shared_directory)
     print("Worker starting at:", time.strftime("%Y%m%d-%H%M%S"))
     w.run(background=False)
@@ -102,7 +106,7 @@ ns_host, ns_port = NS.start()
 result_logger = hpres.json_result_logger(directory=args.shared_directory,
                                          overwrite=True)
 
-bohb = BOHB(configspace=get_cs_space(),
+bohb = BOHB(configspace=get_cs_space(args.no_norm),
             run_id=args.run_id,
             host=host,
             nameserver=ns_host,

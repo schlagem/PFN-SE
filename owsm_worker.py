@@ -15,6 +15,7 @@ class OSWMWorker(Worker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.run_id = kwargs.get('run_id', None)
+        self.vel_weight = kwargs.get('vel_weight', False)
 
     def compute(self, config_id, config, budget, working_directory):
         hps = {**config}  # sampled hps
@@ -66,9 +67,23 @@ class OSWMWorker(Worker):
                         results["SimpleEnv"]["0.5"]["loss"] +
                         results["SimpleEnv"]["0.0"]["loss"]) / 3.
 
-        # TODO weight different losses or exclude some
         over_all_mean_loss = (cartpole_loss + reacher_loss + pendulum_loss + simpleenvloss) / 4.
         score = over_all_mean_loss
+
+        if self.vel_weight:
+            pendulum_loss_vel = (results["Pendulum-v1"]["1.0"]["axis_loss"][2] +
+                                 results["Pendulum-v1"]["0.5"]["axis_loss"][2] +
+                                 results["Pendulum-v1"]["0.0"]["axis_loss"][2]
+                                 ) / 3.
+            reacher_loss_vel = (results["Reacher-v4"]["1.0"]["axis_loss"][6] +
+                                results["Reacher-v4"]["1.0"]["axis_loss"][7] +
+                                results["Reacher-v4"]["0.5"]["axis_loss"][6] +
+                                results["Reacher-v4"]["0.5"]["axis_loss"][7] +
+                                results["Reacher-v4"]["0.0"]["axis_loss"][6] +
+                                results["Reacher-v4"]["0.0"]["axis_loss"][7]
+                                ) / 6.
+            mean_vel_loss = pendulum_loss_vel + reacher_loss_vel
+            score += 2 * mean_vel_loss
         if math.isnan(score):
             score = 1000.
         run_time = time.time() - start_time

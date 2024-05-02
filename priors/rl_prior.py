@@ -140,7 +140,7 @@ class FullNNEnv(gym.Env):
         self.state_to_hidden = HPStepNN(self.obs_size, 64, hps)
         self.action_to_hidden = HPStepNN(self.action_dim, 64, hps)
         self.hidden_to_nextstate = HPStepNN(64, self.obs_size, hps)
-        self.reward_model = HPStepNN(self.obs_size, 1, hps)
+        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, 1, hps)
         self.eps_steps = 0
 
     def step(self, action):
@@ -152,10 +152,10 @@ class FullNNEnv(gym.Env):
             hidden_action = self.action_to_hidden(torch.tensor(action).float())
             hidden_state = self.state_to_hidden(torch.tensor(self.state).float())
             new_state = self.hidden_to_nextstate(hidden_state + hidden_action)
-            reward = self.reward_model.forward(new_state)
-        self.state = new_state
+            reward = self.reward_model.forward(torch.cat((new_state, torch.tensor(self.state).float(), torch.tensor(action).float())))
+        self.state = new_state.numpy()
         terminated = False
-        return np.array(self.state), reward, terminated, False, None
+        return self.state, reward, terminated, False, None
 
     def render(self):
         pass
@@ -195,7 +195,7 @@ class NNEnvironment(gym.Env):
         self.NN_list = []
         for i in range(self.obs_size):
             self.NN_list.append(HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=hps))
-        self.reward_model = HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=hps)
+        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=hps)
         self.eps_steps = 0
 
     def step(self, action):
@@ -210,7 +210,7 @@ class NNEnvironment(gym.Env):
         with torch.no_grad():
             for g in self.NN_list:
                 next_state_and_reward.append(g.forward(state_action).item())
-            next_state_and_reward.append(self.reward_model(torch.tensor(next_state_and_reward + action).float()))
+            next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
         self.state = next_state_and_reward[:self.obs_size]
         self.eps_steps += 1
         if self.constant_reward:
@@ -379,13 +379,11 @@ def get_train_batch(seq_len, batches, num_features, X, Y, hps):
                 observation, info = env.reset()
 
         env.close()
-        # add gaussian noise
-        mean = torch.mean(X[:, b], dim=0)
-        std = torch.std(X[:, b], dim=0)
-        X[:, b] = torch.nan_to_num((X[:, b] - mean) / std, nan=0)
-        X = X  # + torch.normal(mean=0, std=0.01, size=X.shape)
-        mean = torch.mean(Y[:, b], dim=0)
-        std = torch.std(Y[:, b], dim=0)
-        Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
-        Y = Y  # + torch.normal(mean=0, std=0.01, size=Y.shape)
+        if not hps["no_norm"]:
+            mean = torch.mean(X[:, b], dim=0)
+            std = torch.std(X[:, b], dim=0)
+            X[:, b] = torch.nan_to_num((X[:, b] - mean) / std, nan=0)
+            mean = torch.mean(Y[:, b], dim=0)
+            std = torch.std(Y[:, b], dim=0)
+            Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
     return X, Y
