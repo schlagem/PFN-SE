@@ -56,7 +56,7 @@ else:
 host = hpns.nic_name_to_host(nic)
 
 
-def get_cs_space(no_norm):
+def get_cs_space(no_norm, vel_weight):
     cs = ConfigurationSpace()
 
     cs.add_hyperparameter(CategoricalHyperparameter("env_name", choices=["NNEnv", "FullNNEnv"]))
@@ -84,13 +84,14 @@ def get_cs_space(no_norm):
     # work around constant does not work with bool
     cs.add_hyperparameter(CategoricalHyperparameter("test", choices=[False]))
     cs.add_hyperparameter(CategoricalHyperparameter("no_norm", choices=[no_norm]))
+    cs.add_hyperparameter(CategoricalHyperparameter("vel_weight", choices=[vel_weight]))
     return cs
 
 
 if args.worker:
     # Longer sleep as cluster might need to start nodes
     time.sleep(10)   # short artificial delay to make sure the nameserver is already running
-    w = OSWMWorker(run_id=args.run_id, host=host, vel_weight=args.vel_weight)
+    w = OSWMWorker(run_id=args.run_id, host=host)
     w.load_nameserver_credentials(working_directory=args.shared_directory)
     print("Worker starting at:", time.strftime("%Y%m%d-%H%M%S"))
     w.run(background=False)
@@ -106,7 +107,7 @@ ns_host, ns_port = NS.start()
 result_logger = hpres.json_result_logger(directory=args.shared_directory,
                                          overwrite=True)
 
-bohb = BOHB(configspace=get_cs_space(args.no_norm),
+bohb = BOHB(configspace=get_cs_space(args.no_norm, args.vel_weight),
             run_id=args.run_id,
             host=host,
             nameserver=ns_host,

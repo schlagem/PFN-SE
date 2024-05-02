@@ -1,7 +1,0 @@
-cpu-bind=MASK - kisexe17, task  0  0 [1237]: mask 0xf000f0 set
-Traceback (most recent call last):
-  File "/work/dlclarge1/schlagem-oswm/PFN-SE/BO_hpbandster.py", line 93, in <module>
-    w = OSWMWorker(run_id=args.run_id, host=host, vel_weight=args.vel_weight)
-  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 16, in __init__
-    super().__init__(*args, **kwargs)
-TypeError: Worker.__init__() got an unexpected keyword argument 'vel_weight'
