@@ -1,11 +1,10 @@
 import gymnasium as gym
 from stable_baselines3 import PPO
-from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.monitor import Monitor
 import argparse
 import sys
-
 sys.path.append('..')
-
 from simple_env import SimpleEnv
 
 
@@ -31,13 +30,25 @@ def train_expert_policy(env_name, time_steps):
     print(env.__dict__)
 
     model = PPO("MlpPolicy", env, verbose=1)
-    model.learn(total_timesteps=time_steps)
+
+    # Separate evaluation env
+    if env_name == "SimpleEnv":
+        eval_env = SimpleEnv()
+    else:
+        eval_env = gym.make(env_name)
+    monitor_eval_env = Monitor(eval_env, allow_early_resets=True)
+
+    # Use deterministic actions for evaluation
+    eval_callback = EvalCallback(monitor_eval_env, eval_freq=1000,
+                                 deterministic=True, render=False, n_eval_episodes=10)
+
+    model.learn(total_timesteps=time_steps, callback=eval_callback)
     model.save("expert_policies/PPO_" + env_name)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Train expert policies')
     parser.add_argument("--env", type=str, required=True)
-    parser.add_argument("--t", type=int, default=100000)
+    parser.add_argument("--t", type=int, default=50000)
     args = parser.parse_args()
     train_expert_policy(args.env, args.t)

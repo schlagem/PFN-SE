@@ -14,9 +14,6 @@ class OSWMWorker(Worker):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # setting torch num of cores
-        # torch.set_num_threads(8)
-        # torch.set_num_interop_threads(8) TODO
         self.run_id = kwargs.get('run_id', None)
 
     def compute(self, config_id, config, budget, working_directory):
@@ -29,7 +26,7 @@ class OSWMWorker(Worker):
         min_train_len = 500
         max_dataset_size = 1001
         epochs = int(budget)
-        steps_per_epoch = 10 # 0
+        steps_per_epoch = 100
 
         train_result = train(
             # the prior is the key. It defines what we train on. You should hand over a dataloader here
@@ -55,8 +52,7 @@ class OSWMWorker(Worker):
 
         final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
-        # TODO disable debug
-        results = val_loss_table(trained_model, debug_truncation=True)
+        results = val_loss_table(trained_model, debug_truncation=False)
         cartpole_loss = (results["CartPole-v1"]["1.0"]["loss"] +
                         results["CartPole-v1"]["0.5"]["loss"] +
                         results["CartPole-v1"]["0.0"]["loss"]) / 3.
@@ -81,7 +77,8 @@ class OSWMWorker(Worker):
                      "reacher_loss": reacher_loss,
                      "pendulum_loss": pendulum_loss,
                      "simpleenv_loss": simpleenvloss,
-                     "train_loss": final_mean_loss
+                     "train_loss": final_mean_loss,
+                     "all_resutls": results
                      }
         return ({
             'loss': float(score),  # this is the a mandatory field to run hyperband

@@ -3,8 +3,8 @@
 #SBATCH --cpus-per-task 8
 #SBATCH --ntasks=1
 #SBATCH --mem 48000 # memory pool for all cores (4GB)
-#SBATCH -t 0-18:00 # time (D-HH:MM)
-#SBATCH -a 0-7 # array size
+#SBATCH -t 3-00:00 # time (D-HH:MM)
+#SBATCH -a 0-15 # array size
 #SBATCH -J BO_for_HP_oswm # Job name
 #SBATCH -D /work/dlclarge1/schlagem-oswm/PFN-SE
 #SBATCH -o log/%x.%N.%A.%a.out # STDOUT  (the folder log has to exist) %A will be replaced by the SLURM_ARRAY_JOB_ID value, whilst %a will be replaced by the SLURM_ARRAY_TASK_ID
@@ -18,7 +18,7 @@ conda activate pfn
 
 # Job to peform
 if [ 0 -eq $SLURM_ARRAY_TASK_ID ]; then
-   python BO_hpbandster.py --shared_directory /work/dlclarge1/schlagem-oswm/PFN-SE --run_id debug_test --n_workers 7 --n_iterations 21 --min_budget 50 --max_budget 50
+   python BO_hpbandster.py --shared_directory /work/dlclarge1/schlagem-oswm/PFN-SE --run_id debug_test --n_workers 15 --n_iterations 45 --min_budget 50 --max_budget 50
 else
    python BO_hpbandster.py --shared_directory /work/dlclarge1/schlagem-oswm/PFN-SE --run_id debug_test  --worker
 fi
