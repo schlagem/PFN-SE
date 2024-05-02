@@ -15,7 +15,6 @@ class OSWMWorker(Worker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.run_id = kwargs.get('run_id', None)
-        self.vel_weight = kwargs.get('vel_weight', False)
 
     def compute(self, config_id, config, budget, working_directory):
         hps = {**config}  # sampled hps
@@ -70,7 +69,7 @@ class OSWMWorker(Worker):
         over_all_mean_loss = (cartpole_loss + reacher_loss + pendulum_loss + simpleenvloss) / 4.
         score = over_all_mean_loss
 
-        if self.vel_weight:
+        if hps["vel_weight"]:
             pendulum_loss_vel = (results["Pendulum-v1"]["1.0"]["axis_loss"][2] +
                                  results["Pendulum-v1"]["0.5"]["axis_loss"][2] +
                                  results["Pendulum-v1"]["0.0"]["axis_loss"][2]
