@@ -1,4 +1,6 @@
 import math
+import time
+
 import gymnasium as gym
 
 
@@ -143,6 +145,7 @@ class ArtificialEnv(gym.Env):
         self.state = None
 
     def step(self, a):
+        start = time.time()
         a = a  # .item()
         # TODO check if all normalizations are correct
         if self.state is None:
@@ -171,6 +174,7 @@ class ArtificialEnv(gym.Env):
 
         done = self.done_func(self.state, self.episode_steps)
         self.episode_steps += 1
+        print(time.time() - start)
         return self.state, re, done, False, {}
 
     def reset(self, **kwargs):
