@@ -1,0 +1,47 @@
+cpu-bind=MASK - kisexe15, task  0  0 [1808]: mask 0xf000f set
+INFO:hpbandster:DISPATCHER: started the 'discover_worker' thread
+INFO:hpbandster:DISPATCHER: started the 'job_runner' thread
+INFO:hpbandster:DISPATCHER: Pyro daemon running on 10.5.166.125:44395
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+slurmstepd-kisexe15: error: *** JOB 11460362 ON kisexe15 CANCELLED AT 2024-05-02T16:03:36 ***
