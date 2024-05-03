@@ -10,6 +10,9 @@ from simple_env import SimpleEnv
 import json
 
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def get_random_policy(obs_size, a_size, hidden_size=64):
     model = nn.Sequential(nn.Linear(obs_size, hidden_size),
                           nn.ReLU(),
@@ -105,7 +108,7 @@ def gather_context(length, batch_size, feature_size, env_name, action_gather_typ
     x_context = x_context[perm]
     y_context = y_context[perm]
 
-    return x_context, y_context, x_mean, x_std, y_mean, y_std
+    return x_context.to(device), y_context.to(device), x_mean.to(device), x_std.to(device), y_mean.to(device), y_std.to(device)
 
 
 def val_loss_table(model, debug_truncation=False):
@@ -217,13 +220,15 @@ def get_model():
     print(
         f"Using a Transformer with {sum(p.numel() for p in pfn.parameters()) / 1000 / 1000:.{2}f} M parameters"
     )
-    pfn.load_state_dict(torch.load("trained_models/first_incumbent.pt"))
+    pfn.load_state_dict(torch.load("saved_models/first_incumbent.pt"))
     pfn.eval()
-    return pfn
+    return pfn.to(device)
 
 
 if __name__ == '__main__':
     results = val_loss_table(get_model())
+    print(results)
+    exit()
     # TODO change save name to show checkpoint name
     with open('val_transitions/scores/validation_scores.json', 'w') as fp:
         json.dump(results, fp, indent=4)
