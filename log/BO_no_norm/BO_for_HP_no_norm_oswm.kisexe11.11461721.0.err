@@ -1,0 +1,50 @@
+cpu-bind=MASK - kisexe11, task  0  0 [2342]: mask 0xf000f set
+INFO:hpbandster:DISPATCHER: started the 'discover_worker' thread
+INFO:hpbandster:DISPATCHER: started the 'job_runner' thread
+INFO:hpbandster:DISPATCHER: Pyro daemon running on 10.5.166.121:33295
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe12.2359
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe12.2361
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe12.2360
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe12.2358
+INFO:hpbandster:HBMASTER: adjusted queue size to (3, 4)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe14.2397
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe14.2398
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe14.2399
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe14.2400
+INFO:hpbandster:HBMASTER: adjusted queue size to (7, 8)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe13.2365
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe13.2368
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe13.2366
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe13.2367
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe11.2420
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe11.2416
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.worker.kisexe11.2417
+INFO:hpbandster:HBMASTER: adjusted queue size to (14, 15)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:HBMASTER: starting run at 1714659036.583719

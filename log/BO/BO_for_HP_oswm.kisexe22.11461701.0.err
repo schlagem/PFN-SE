@@ -1,0 +1,86 @@
+cpu-bind=MASK - kisexe22, task  0  0 [11231]: mask 0xf000f set
+INFO:hpbandster:DISPATCHER: started the 'discover_worker' thread
+INFO:hpbandster:DISPATCHER: started the 'job_runner' thread
+INFO:hpbandster:DISPATCHER: Pyro daemon running on 10.5.166.132:45423
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe22.11283
+INFO:hpbandster:HBMASTER: adjusted queue size to (0, 1)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe22.11284
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe25.18858
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe25.18857
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe25.18859
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe10.12059
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe10.12058
+INFO:hpbandster:HBMASTER: adjusted queue size to (6, 7)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe28.2976
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe28.2975
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe28.2973
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe28.2974
+INFO:hpbandster:HBMASTER: adjusted queue size to (10, 11)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe27.3129
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe27.3130
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe27.3128
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vanilla_bo.worker.kisexe27.3131
+INFO:hpbandster:HBMASTER: adjusted queue size to (14, 15)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:HBMASTER: starting run at 1714658984.3995633
+WARNING:hpbandster:job (14, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (22, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (19, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+

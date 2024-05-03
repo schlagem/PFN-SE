@@ -1,0 +1,114 @@
+cpu-bind=MASK - kisexe15, task  0  0 [2347]: mask 0xf000f set
+INFO:hpbandster:DISPATCHER: started the 'discover_worker' thread
+INFO:hpbandster:DISPATCHER: started the 'job_runner' thread
+INFO:hpbandster:DISPATCHER: Pyro daemon running on 10.5.166.125:33309
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe18.41336
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe18.41335
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe18.41337
+INFO:hpbandster:HBMASTER: adjusted queue size to (2, 3)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe19.38400
+INFO:hpbandster:HBMASTER: adjusted queue size to (3, 4)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe16.2381
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe16.2379
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe16.2380
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe16.2382
+INFO:hpbandster:HBMASTER: adjusted queue size to (7, 8)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe17.2371
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe17.2372
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe17.2373
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe17.2370
+INFO:hpbandster:HBMASTER: adjusted queue size to (11, 12)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe15.2420
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe15.2418
+INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_vel_weight_bo.worker.kisexe15.2417
+INFO:hpbandster:HBMASTER: adjusted queue size to (14, 15)
+INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
+INFO:hpbandster:HBMASTER: starting run at 1714659043.0712364
+WARNING:hpbandster:job (5, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (3, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (17, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (19, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (24, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+WARNING:hpbandster:job (30, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
