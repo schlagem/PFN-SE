@@ -1,33 +1,17 @@
 import torch
 from priors import rl_prior
 import argparse
+from stable_baselines3 import PPO
+import gymnasium as gym
+from stable_baselines3.common.env_util import make_vec_env
 
 
+vec_env = make_vec_env("MountainCar-v0")
 
-parser = argparse.ArgumentParser(description="test")
-parser.add_argument('--no_norm', type=bool, help='To norm the X and Y in OSWM training or not.', default=False)
+model = PPO.load("val_transitions/expert_policies/PPO_MountainCar-v0.zip")
 
-args = parser.parse_args()
-print(args.no_norm)
-exit()
-
-hps = {"env_name": "NNEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
-       "state_offset": 3.2802608490289904, "state_scale": 18.147661409701062, "tanh": True, "test": False,
-       "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True, "width_hidden": 16,
-       "no_norm": True}
-
-
-seq_len = 1001
-batch_size = 4
-num_features = 14
-X = torch.full((seq_len, batch_size, num_features), 0.)
-Y = torch.full((seq_len, batch_size, num_features), float(0.))
-
-for i in range(10):
-    print(i)
-    X, Y = rl_prior.get_train_batch(seq_len, batch_size, num_features, X, Y, hps)
-    for b in range(batch_size):
-        mean = torch.mean(X[:, b], dim=0)
-        std = torch.std(X[:, b], dim=0)
-        print(mean, std)
-
+obs = vec_env.reset()
+while True:
+    action, _states = model.predict(obs)
+    obs, rewards, dones, info = vec_env.step(action)
+    vec_env.render("human")
