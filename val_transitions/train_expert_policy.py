@@ -1,11 +1,27 @@
 import gymnasium as gym
-from stable_baselines3 import PPO
+from gymnasium import Wrapper
+from gymnasium.experimental.wrappers import StickyActionV0
+from stable_baselines3 import PPO, DQN
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.monitor import Monitor
 import argparse
 import sys
 sys.path.append('..')
 from simple_env import SimpleEnv
+
+
+class RepeatWrapper(Wrapper):
+    def __init__(self, env, repeats):
+        super().__init__(env)
+        self.repeat_max = repeats
+        self.repeat_current = repeats
+        self.prev_action = None
+
+    def step(self, action):
+        for i in range(self.repeat_max):
+            obs, reward, terminated, truncated, info = self.env.step(action)
+        return obs, reward, terminated, truncated, info
+
 
 
 # TODO summarize this function somewhere (2/3)
@@ -27,6 +43,7 @@ def training_callback(one, two):
 def train_expert_policy(env_name, time_steps):
     # Parallel environments
     env = get_env(env_name)
+    env = RepeatWrapper(env, repeats=5)
     print(env.__dict__)
 
     model = PPO("MlpPolicy", env, verbose=1)
@@ -36,6 +53,7 @@ def train_expert_policy(env_name, time_steps):
         eval_env = SimpleEnv()
     else:
         eval_env = gym.make(env_name)
+    # eval_env = RepeatWrapper(eval_env, repeats=5)
     monitor_eval_env = Monitor(eval_env, allow_early_resets=True)
 
     # Use deterministic actions for evaluation

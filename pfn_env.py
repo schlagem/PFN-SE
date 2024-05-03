@@ -7,6 +7,7 @@ import gymnasium as gym
 import torch
 import torch.nn as nn
 import numpy as np
+from stable_baselines3 import PPO
 
 import grid_world
 from train import build_model
@@ -45,6 +46,10 @@ def get_done_func(env_name):
         def reacher_reset(state, steps):
             return steps > 50
         return reacher_reset
+    elif env_name == "MountainCar-v0":
+        def mountain_car_reset(state, steps):
+            return state[0] >= 0.5 or steps > 199
+        return mountain_car_reset
     else:
         raise NotImplementedError
 
@@ -76,8 +81,13 @@ class ArtificialEnv(gym.Env):
             ep = 0
             steps_after_done = 0
             for i in range(1001):
-                action = self.real_env.action_space.sample()
-                if isinstance(action, int):
+                if ep < 7:
+                    action = 0
+                elif ep < 15:
+                    action = 1
+                else:
+                    action = self.real_env.action_space.sample()
+                if isinstance(action, int) or isinstance(action, np.int64):
                     action_array = np.array([action])  # TODO detect action type
                 else:
                     action_array = action
@@ -101,7 +111,7 @@ class ArtificialEnv(gym.Env):
                 # obs[-1] = float(terminated or truncated) # TODO if possible for all env
                 next_state_reward_pair = torch.hstack((obs, torch.tensor(reward)))
                 self.train_y[i, b] = next_state_reward_pair
-                if terminated or truncated: #  or i > 50:
+                if terminated or truncated or i % 50 == 0:
                     steps_after_done += 1
                     if steps_after_done >= 0:
                         steps_after_done = 0
@@ -145,13 +155,12 @@ class ArtificialEnv(gym.Env):
         self.state = None
 
     def step(self, a):
-        start = time.time()
         a = a  # .item()
         # TODO check if all normalizations are correct
         if self.state is None:
             raise gym.error.ResetNeeded
 
-        if isinstance(a, int):
+        if isinstance(a, int) or isinstance(a, np.int64):
             action_array = np.array([a])  # TODO detect action type
         else:
             action_array = a
@@ -174,7 +183,6 @@ class ArtificialEnv(gym.Env):
 
         done = self.done_func(self.state, self.episode_steps)
         self.episode_steps += 1
-        print(time.time() - start)
         return self.state, re, done, False, {}
 
     def reset(self, **kwargs):

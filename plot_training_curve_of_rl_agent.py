@@ -25,7 +25,7 @@ def plot_agent_trained_on_oswm(env_name):
     train_means = []
     time_steps = None
     train_time_steps = []
-    for seed in range(1, 4):
+    for seed in range(1, 2):
         path = generate_log_dir_path(env_name, seed)
         evals = np.load(os.path.join(path, "evaluations.npz"))
         df = pandas.read_csv(os.path.join(path, "monitor.csv"), header=[1])

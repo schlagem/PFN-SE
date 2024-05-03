@@ -1,0 +1,2 @@
+{"eval/mean_reward": -13.601253600000001, "eval/mean_ep_length": 50.0, "time/total_timesteps": 100}
+{"time/iterations": 1, "rollout/ep_rew_mean": -50.264847, "rollout/ep_len_mean": 52.0, "time/fps": 20, "time/time_elapsed": 6, "time/total_timesteps": 128}
