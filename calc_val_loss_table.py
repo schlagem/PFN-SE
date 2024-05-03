@@ -8,6 +8,7 @@ import os
 import gymnasium as gym
 from simple_env import SimpleEnv
 import json
+from stable_baselines3 import PPO
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -65,6 +66,8 @@ def gather_context(length, batch_size, feature_size, env_name, action_gather_typ
             else:  # Continous
                 a_shape = env.action_space.shape[0]
             policy = get_random_policy(env.observation_space.shape[0], a_shape)
+        elif action_gather_type == "Expert Policy":
+            policy = PPO.load("val_transitions/expert_policies/PPO_" + env_name + ".zip")
         repeats = 100
         for k in range(length):
             if action_gather_type == "random":
@@ -83,6 +86,8 @@ def gather_context(length, batch_size, feature_size, env_name, action_gather_typ
                     else:  # Continous case
                         action = policy(torch.tensor(observation, dtype=torch.float))
                 action = action.numpy()
+            elif action_gather_type == "Expert Policy":
+                action, _ = policy.predict(observation)
             else:
                 raise NotImplementedError("No Valid Context gathering method used!")
             x_context[k, b, :observation.shape[0]] = torch.tensor(observation)
@@ -228,7 +233,6 @@ def get_model():
 if __name__ == '__main__':
     results = val_loss_table(get_model())
     print(results)
-    exit()
     # TODO change save name to show checkpoint name
     with open('val_transitions/scores/validation_scores.json', 'w') as fp:
         json.dump(results, fp, indent=4)
