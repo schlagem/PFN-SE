@@ -1,17 +1,86 @@
-import torch
-from priors import rl_prior
-import argparse
-from stable_baselines3 import PPO
-import gymnasium as gym
-from stable_baselines3.common.env_util import make_vec_env
+import pygame
+import math
+import numpy as np
 
+pygame.init()
 
-vec_env = make_vec_env("MountainCar-v0")
+screen = pygame.display.set_mode((500, 500))
 
-model = PPO.load("val_transitions/expert_policies/PPO_MountainCar-v0.zip")
+clock = pygame.time.Clock()
 
-obs = vec_env.reset()
+rad = 4.7
+rad = math.atan2(math.sin(rad), math.cos(rad))
+sin = math.sin(rad)
+cos = math.cos(rad)
+vel = 0.
+g = 50.
+
+x = np.random.rand()
+
 while True:
-    action, _states = model.predict(obs)
-    obs, rewards, dones, info = vec_env.step(action)
-    vec_env.render("human")
+    # Process player inputs.
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            raise SystemExit
+
+    # Do logical updates here.
+    # ...
+
+    screen.fill("purple")  # Fill the display with a solid color
+
+    # Render the graphics here.
+    # ...
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        vel = vel + .5 * 0.1
+    elif keys[pygame.K_RIGHT]:
+        vel = vel - (.5 * 0.1)
+
+    # vel -= g * math.cos(rad) * 0.01
+    vel *= 0.99
+    max_vel = 7
+    if vel > max_vel:
+        vel = max_vel
+
+    if vel < -max_vel:
+        vel = -max_vel
+
+    rad += vel * 0.1
+    print("----")
+    print(math.cos(math.atan2(math.sin(rad), math.cos(rad))))
+    print(math.sin(math.atan2(math.sin(rad), math.cos(rad))))
+    print(math.atan2(math.sin(rad), math.cos(rad)))
+
+    x = math.cos(rad)
+    y = math.sin(rad)
+    print("x:", x)
+    print("y:", y)
+    pygame.draw.line(screen, "green", (250, 250), (250 + 100 * x, 250 - 100 * y), 5)
+    """
+    max_vel = 7.
+    if vel > max_vel:
+        vel = max_vel
+
+    if vel < -max_vel:
+        vel = -max_vel
+
+
+    x += vel * 0.1
+
+    max_pos = 1.
+    if x > max_pos:
+        x = max_pos
+        vel = -.7 * vel
+
+    min_pos = 0.
+    if x < min_pos:
+        x = min_pos
+        vel = -.7 * vel
+
+    print(vel)
+
+    pygame.draw.rect(screen, "green", pygame.Rect(225, 450 - x * 450, 50, 50))
+    """
+    pygame.display.flip()  # Refresh on-screen display
+    clock.tick(30)         # wait until next frame (at 60 FPS)

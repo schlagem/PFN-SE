@@ -7,6 +7,7 @@ import gymnasium as gym
 import torch
 from gymnasium import spaces
 
+
 class SinActivation(torch.nn.Module):
     def __init__(self):
         super(SinActivation, self).__init__()
@@ -23,6 +24,107 @@ class NoOpActivation(torch.nn.Module):
 
     def forward(self, x):
         return x
+
+
+class Dym:
+    def __init__(self):
+        self.dt = 0.01
+
+
+class VelDym(Dym):
+    def __init__(self, dym_type, action_dim):
+        super().__init__()
+        self.controlling_action_dim = np.random.randint(low=0, high=action_dim)
+        self.velocity = None
+        self.invert = np.random.choice([True, False])
+        self.dym_type = dym_type  # choice out of sin cos x y
+        if self.dym_type == "sin" or self.dym_type == "cos" or self.dym_type == "rad":
+            self.gravity = np.random.choice([True, False])
+            self.g = (5. * np.random.rand()) + 5.  # Max gravity 10.  min gravity 5.
+            self.dampening = .9 + 0.1 * np.random.rand()
+        if self.dym_type == "y":
+            self.gravity = True
+            self.g = (5. * np.random.rand()) + 5.  # Max gravity 10.  min gravity 5.
+        if self.dym_type == "x":
+            self.gravity = False
+
+    def update(self, action, pos_dym):
+        self.velocity = self.velocity + action[self.controlling_action_dim] * self.dt
+        if self.gravity:
+            if self.dym_type == "sin" or self.dym_type == "cos" or self.dym_type == "rad":
+                # time 5 to keep desired properties with same action space as lin
+                self.velocity -= self.g * np.cos(pos_dym.position) * self.dt * 5
+                self.velocity *= self.dampening
+            elif self.dym_type == "y":
+                self.velocity -= self.g * pos_dym.position * self.dt
+
+        # cap maximum momentum for stability
+        max_vel = 7.
+        if self.velocity > max_vel:
+            self.velocity = max_vel
+
+        if self.velocity < -max_vel:
+            self.velocity = -max_vel
+
+    def get_velocity(self):
+        return self.velocity * (-1 * self.invert)
+
+    def reset(self):
+        self.velocity = 6 * (np.random.rand() - 0.5)
+        return self.get_velocity()
+
+
+class PosDym(Dym):
+    # TODO implement pos dym
+    def __init__(self, dym_type):
+        super().__init__()
+        self.position = None  # x/y pos or angle in radians
+        self.dym_type = dym_type  # choice out of sin, cos, x, y
+        if self.dym_type == "rad":
+            self.only_positive = np.random.choice([True, False])
+        if self.dym_type == "x":
+            self.max_pos = 1.0
+            self.min_pos = -1.0
+            # choice between inelastic and random elasticity
+            self.elasticity = np.random.choice([0., 0.3 + 0.7 * np.random.rand()])
+
+        elif self.dym_type == "y":
+            self.max_pos = 1.0
+            self.min_pos = 0.0
+            self.elasticity = 0.3 + 0.7 * np.random.rand()  # TODO find min max values
+
+    def update(self, vel_dym):
+        velocity = vel_dym.velocity
+        self.position = self.position + velocity * self.dt
+        if self.dym_type == "x" or self.dym_type == "y":
+            if self.position > self.max_pos:
+                self.position = self.max_pos
+                vel_dym.velocity = -self.elasticity * velocity
+
+            if self.position < self.min_pos:
+                self.position = self.min_pos
+                vel_dym.velocity = -self.elasticity * velocity
+
+    def get_position(self):
+        if self.dym_type == "x" or self.dym_type == "y":
+            return self.position
+        if self.dym_type == "cos":
+            return np.cos(self.position)
+        if self.dym_type == "sin":
+            return np.sin(self.position)
+        if self.dym_type == "rad":
+            return np.cos(np.arctan2(np.sin(self.position), np.cos(self.position))) + self.only_positive * np.pi
+
+    def reset(self):
+        if self.dym_type == "x":
+            self.position = np.random.rand() * 2. - 1.  # ranges between -1 and 1
+            return self.get_position()
+        if self.dym_type == "y":
+            self.position = np.random.rand()  # ranges between 0 and 1
+            return self.get_position()
+        if self.dym_type == "sin" or self.dym_type == "cos" or self.dym_type == "rad":
+            self.position = np.random.rand() * 2 * np.pi  # ranges between 0 and 2 pi
+            return self.get_position()
 
 
 def get_random_activation(relu=True, sin=True, tanh=True, sigmoid=True):
@@ -110,6 +212,93 @@ def SmallNNGen(input_size, output_size):
                                 torch.nn.Linear(64, output_size))
 
     return model.float()
+
+
+class MomentumEnv(gym.Env):
+
+    def __init__(self, hps):
+        self.state = None
+
+        self.constant_reward = random.random() > 0.5
+        self.discrete = False
+        if random.random() > 0.5:
+            self.action_dim = 1
+            self.discrete = True
+            dim = np.random.randint(2, high=5)
+            self.action_space = spaces.Discrete(dim)
+            self.discrete_choices = 6 * (np.random.rand(dim) - 0.5)
+        else:
+            self.action_dim = np.random.randint(1, high=4)
+            max_action = 2.5 * np.random.rand() + 0.5
+            self.action_space = spaces.Box(
+                low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
+            )
+
+        self.obs_size = random.randint(3, 11)
+        # maximum of momentum dims are obs_size // 2 min num is 0 is
+        self.num_momentum_dims = np.random.randint(0, (self.obs_size//2) + 1)
+        self.state_scale = hps["state_scale"] * np.random.rand(self.obs_size - 2 * self.num_momentum_dims)
+        self.state_offset = hps["state_offset"] * (np.random.rand() - 0.5)
+        self.total_steps = 0
+
+        self.NN_list = []
+        for i in range(self.obs_size - 2 * self.num_momentum_dims):
+            self.NN_list.append(HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=hps))
+
+        self.pos_list = []
+        self.vel_list = []
+        for j in range(self.num_momentum_dims):
+            dym_type = np.random.choice(["sin", "cos", "x", "y", "rad"])
+            self.pos_list.append(PosDym(dym_type))
+            self.vel_list.append(VelDym(dym_type, self.action_dim))
+        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=hps)
+        self.eps_steps = 0
+
+    def step(self, action):
+        if self.discrete:
+            action = self.discrete_choices[action]
+        next_state_and_reward = []
+        if isinstance(action, int) or isinstance(action, float):
+            action = [action]
+        else:
+            action = list(action)
+        state_action = torch.tensor(list(self.state) + action).float()
+        with torch.no_grad():
+            for g in self.NN_list:
+                next_state_and_reward.append(g.forward(state_action).item())
+            # TODO use update of vel and pos dym
+            for v, p in zip(self.vel_list, self.pos_list):
+                # first update position and velocity
+                v.update(action, p)
+                p.update(v)
+                # append to next state
+                next_state_and_reward.append(p.get_position())
+                next_state_and_reward.append(v.get_velocity())
+            next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
+        self.state = next_state_and_reward[:self.obs_size]
+        self.eps_steps += 1
+        if self.constant_reward:
+            reward = 1.
+        else:
+            reward = next_state_and_reward[-1]
+
+        term_steps = 50
+        terminated = self.eps_steps > term_steps
+        self.total_steps += 1
+        return np.array(self.state), reward, terminated, False, None
+
+    def render(self):
+        pass
+
+    def reset(self, **kwargs):
+        NNstates = (np.random.rand(self.obs_size - 2 * self.num_momentum_dims) - self.state_offset) * self.state_scale
+        velocity_position_states = []
+        for v, p in zip(self.vel_list, self.pos_list):
+            velocity_position_states.append(p.reset())
+            velocity_position_states.append(v.reset())
+        self.state = np.concatenate((NNstates, velocity_position_states))
+        self.eps_steps = 0
+        return self.state, None
 
 
 class FullNNEnv(gym.Env):
@@ -242,6 +431,8 @@ def get_dataset(hps):
         env = NNEnvironment(hps)
     elif env_name == "FullNNEnv":
         env = FullNNEnv(hps)
+    elif env_name == "MomentumEnv":
+        env = MomentumEnv(hps)
     else:
         env = gym.make(env_name)
     return env
