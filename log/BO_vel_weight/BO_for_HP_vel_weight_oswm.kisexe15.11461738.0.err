@@ -112,3 +112,15 @@ Traceback (most recent call last):
     f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
 TypeError: 'int' object is not iterable
 
+WARNING:hpbandster:job (38, 0, 0) failed with exception
+Traceback (most recent call last):
+  File "/home/schlagem/miniconda3/envs/pfn/lib/python3.10/site-packages/hpbandster/core/worker.py", line 206, in start_computation
+    result = {'result': self.compute(*args, config_id=id, **kwargs),
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/owsm_worker.py", line 31, in compute
+    train_result = train(
+  File "/work/dlclarge1/schlagem-oswm/PFN-SE/train.py", line 575, in train
+    f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"
+TypeError: 'int' object is not iterable
+
+INFO:hpbandster:DISPATCHER: Dispatcher shutting down
+INFO:hpbandster:DISPATCHER: shut down complete

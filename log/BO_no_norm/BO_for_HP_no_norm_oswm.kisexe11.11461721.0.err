@@ -48,3 +48,5 @@ INFO:hpbandster:DISPATCHER: discovered new worker, hpbandster.run_no_norm_bo.wor
 INFO:hpbandster:HBMASTER: adjusted queue size to (14, 15)
 INFO:hpbandster:DISPATCHER: A new worker triggered discover_worker
 INFO:hpbandster:HBMASTER: starting run at 1714659036.583719
+INFO:hpbandster:DISPATCHER: Dispatcher shutting down
+INFO:hpbandster:DISPATCHER: shut down complete
