@@ -33,7 +33,7 @@ train_len = 1000
 min_train_len = 500
 
 max_dataset_size = 1001
-epochs = 10
+epochs = 50
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
                      get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
