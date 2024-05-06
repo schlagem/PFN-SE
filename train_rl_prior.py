@@ -36,12 +36,12 @@ train_len = 1000
 min_train_len = 500
 
 max_dataset_size = 1001
-epochs = 10
+epochs = 50
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
                      get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
                      # define the transformer size
-                     emsize=512, nhead=4, nhid=1024, nlayers=6,
+                     emsize=1024, nhead=16, nhid=2048, nlayers=10,
                      # how to encode the x and y inputs to the transformer
                      encoder_generator=encoders.StateActionEncoderCat,
                      y_encoder_generator=encoders.NextStateRewardEncoderCat,
@@ -66,5 +66,5 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/temp.pt")
+torch.save(trained_model.state_dict(), "saved_models/80M_MomentumEnv.pt")
 
