@@ -9,6 +9,7 @@ from train import train
 import priors.rl_prior
 import encoders
 import utils
+from decoder import DecoderModel
 
 # There might be warnings during training, regarding efficiency and a missing GPU, if using CPU
 # We do not care about these for this tutorial
@@ -28,6 +29,8 @@ hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": Fal
 
 criterion = nn.MSELoss(reduction='none')
 
+decoder_dict = {"standard": (DecoderModel, 14)}
+
 # number of data points provided at train time
 train_len = 1000
 min_train_len = 500
@@ -38,9 +41,10 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
                      get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
                      # define the transformer size
-                     emsize=512, nhead=4, nhid=1024, nlayers=6,
+                     emsize=1024, nhead=8, nhid=1024, nlayers=6,
                      # how to encode the x and y inputs to the transformer
-                     encoder_generator=encoders.Linear, y_encoder_generator=encoders.Linear,
+                     encoder_generator=encoders.Linear,
+                     y_encoder_generator=encoders.Linear,
                      # these are given to the prior, which needs to know how many features we have etc
                      extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
                      # change the number of epochs to put more compute into a training
@@ -62,5 +66,5 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/momentum_env_test.pt")
+torch.save(trained_model.state_dict(), "trained_models/large_momentum_with_decoder_model.pt")
 

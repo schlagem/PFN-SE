@@ -297,6 +297,94 @@ class Linear(nn.Linear):
         self.__dict__.setdefault("replace_nan_by_zero", True)
 
 
+class StateActionEncoderCat(nn.Module):
+    def __init__(self, num_features, emsize, replace_nan_by_zero=False):
+        super().__init__()
+        self.num_features = num_features
+        self.emsize = emsize
+        self.state_encoder = nn.Linear(num_features-3, emsize//2)
+        self.action_encoder = nn.Linear(3, emsize//2)
+        self.replace_nan_by_zero = replace_nan_by_zero
+
+    def forward(self, x):
+        if self.replace_nan_by_zero:
+            x = torch.nan_to_num(x, nan=0.0)
+        state_enc = self.state_encoder(x[:, :, :11])
+        action_enc = self.action_encoder(x[:, :, 11:])
+        x = torch.cat((state_enc, action_enc), dim=2)
+        return x
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.__dict__.setdefault("replace_nan_by_zero", True)
+
+
+class StateActionEncoderAggregated(nn.Module):
+    def __init__(self, num_features, emsize, replace_nan_by_zero=False):
+        super().__init__()
+        self.num_features = num_features
+        self.emsize = emsize
+        self.state_encoder = nn.Linear(num_features-3, emsize)
+        self.action_encoder = nn.Linear(3, emsize)
+        self.replace_nan_by_zero = replace_nan_by_zero
+
+    def forward(self, x):
+        if self.replace_nan_by_zero:
+            x = torch.nan_to_num(x, nan=0.0)
+        state_enc = self.state_encoder(x[:, :, :11])
+        action_enc = self.action_encoder(x[:, :, 11:])
+        x = state_enc + action_enc
+        return x
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.__dict__.setdefault("replace_nan_by_zero", True)
+
+
+class NextStateRewardEncoderCat(nn.Module):
+    def __init__(self, num_features, emsize, replace_nan_by_zero=False):
+        super().__init__()
+        self.num_features = num_features
+        self.emsize = emsize
+        self.state_encoder = nn.Linear(num_features - 3, emsize // 2)
+        self.r_encoder = nn.Linear(1, emsize // 2)
+        self.replace_nan_by_zero = replace_nan_by_zero
+
+    def forward(self, x):
+        if self.replace_nan_by_zero:
+            x = torch.nan_to_num(x, nan=0.0)
+        state_enc = self.state_encoder(x[:, :, :11])
+        r_enc = self.r_encoder(x[:, :, 13:])
+        x = torch.cat((state_enc, r_enc), dim=2)
+        return x
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.__dict__.setdefault("replace_nan_by_zero", True)
+
+
+class NextStateRewardEncoderAggregated(nn.Module):
+    def __init__(self, num_features, emsize, replace_nan_by_zero=False):
+        super().__init__()
+        self.num_features = num_features
+        self.emsize = emsize
+        self.state_encoder = nn.Linear(num_features - 3, emsize)
+        self.r_encoder = nn.Linear(1, emsize)
+        self.replace_nan_by_zero = replace_nan_by_zero
+
+    def forward(self, x):
+        if self.replace_nan_by_zero:
+            x = torch.nan_to_num(x, nan=0.0)
+        state_enc = self.state_encoder(x[:, :, :11])
+        r_enc = self.r_encoder(x[:, :, 13:])
+        x = state_enc + r_enc
+        return x
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.__dict__.setdefault("replace_nan_by_zero", True)
+
+
 class Conv(nn.Module):
     def __init__(self, input_size, emsize):
         super().__init__()
