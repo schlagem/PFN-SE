@@ -646,11 +646,10 @@ def get_train_batch(seq_len, batches, num_features, X, Y, hps):
                 observation, info = env.reset()
 
         env.close()
-        if not hps["no_norm"]:
-            mean = torch.mean(X[:, b], dim=0)
-            std = torch.std(X[:, b], dim=0)
-            X[:, b] = torch.nan_to_num((X[:, b] - mean) / std, nan=0)
-            mean = torch.mean(Y[:, b], dim=0)
-            std = torch.std(Y[:, b], dim=0)
-            Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
+        mean = torch.mean(X[:, b], dim=0)
+        std = torch.std(X[:, b], dim=0)
+        X[:, b] = torch.nan_to_num((X[:, b] - mean) / std, nan=0)
+        mean = torch.mean(Y[:, b], dim=0)
+        std = torch.std(Y[:, b], dim=0)
+        Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
     return X, Y

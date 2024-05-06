@@ -22,7 +22,7 @@ torch.manual_seed(0)
 
 # maximum Dimension of observations + max dimension of action
 num_features = 14
-hps = {"env_name": "FullMomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
+hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
        "state_offset": 3.2802608490289904, "state_scale": 18.147661409701062, "tanh": True, "test": False,
        "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True, "width_hidden": 16,
        "no_norm": False}
@@ -43,8 +43,8 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
                      # define the transformer size
                      emsize=512, nhead=4, nhid=1024, nlayers=6,
                      # how to encode the x and y inputs to the transformer
-                     encoder_generator=encoders.Linear,
-                     y_encoder_generator=encoders.Linear,
+                     encoder_generator=encoders.StateActionEncoderCat,
+                     y_encoder_generator=encoders.NextStateRewardEncoderCat,
                      # these are given to the prior, which needs to know how many features we have etc
                      extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
                      # change the number of epochs to put more compute into a training
