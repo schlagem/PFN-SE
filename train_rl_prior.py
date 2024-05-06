@@ -66,5 +66,5 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/full_momentum_env.pt")
+torch.save(trained_model.state_dict(), "trained_models/temp.pt")
 
