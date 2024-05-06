@@ -617,7 +617,7 @@ def get_train_batch(seq_len, batches, num_features, X, Y, hps):
             else:
                 action = list(action)
             action_length = len(action)
-            act = torch.tensor(+ (3 - len(action)) * [0.] + action)
+            act = torch.tensor((3 - len(action)) * [0.] + action)
             # Get X value which is state and action
             # observation is state and filled with -100.
             # Then shuffled

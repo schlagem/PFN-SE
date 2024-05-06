@@ -34,7 +34,7 @@ parser.add_argument('--run_id', type=str,
 parser.add_argument('--shared_directory', type=str,
                     help='A directory that is accessible for all processes, e.g. a NFS share.')
 parser.add_argument('--no_norm', type=bool, help='To norm the X and Y in OSWM training or not.', default=False)
-parser.add_argument('--vel_weight', type=bool, help='To weight vel terms more in val loss.', default=False)
+
 
 
 args = parser.parse_args()
@@ -83,8 +83,6 @@ def get_cs_space(no_norm, vel_weight):
     cs.add_hyperparameter(CategoricalHyperparameter("use_res_connection", choices=[True, False]))
     # work around constant does not work with bool
     cs.add_hyperparameter(CategoricalHyperparameter("test", choices=[False]))
-    cs.add_hyperparameter(CategoricalHyperparameter("no_norm", choices=[no_norm]))
-    cs.add_hyperparameter(CategoricalHyperparameter("vel_weight", choices=[vel_weight]))
     return cs
 
 
@@ -113,7 +111,8 @@ bohb = BOHB(configspace=get_cs_space(args.no_norm, args.vel_weight),
             nameserver=ns_host,
             nameserver_port=ns_port,
             min_budget=args.min_budget, max_budget=args.max_budget,
-            result_logger=result_logger
+            result_logger=result_logger,
+            num_samples=15
             )
 
 print("##################", args.n_iterations)
