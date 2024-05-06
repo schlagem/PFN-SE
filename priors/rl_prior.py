@@ -75,7 +75,6 @@ class VelDym(Dym):
 
 
 class PosDym(Dym):
-    # TODO implement pos dym
     def __init__(self, dym_type):
         super().__init__()
         self.position = None  # x/y pos or angle in radians
@@ -301,6 +300,81 @@ class MomentumEnv(gym.Env):
         return self.state, None
 
 
+class FullMomentumEnv(gym.Env):
+
+    def __init__(self, hps):
+        self.state = None
+
+        self.constant_reward = random.random() > 0.5
+        self.discrete = False
+        if random.random() > 0.5:
+            self.action_dim = 1
+            self.discrete = True
+            dim = np.random.randint(2, high=5)
+            self.action_space = spaces.Discrete(dim)
+            self.discrete_choices = 6 * (np.random.rand(dim) - 0.5)
+        else:
+            self.action_dim = np.random.randint(1, high=4)
+            max_action = 2.5 * np.random.rand() + 0.5
+            self.action_space = spaces.Box(
+                low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
+            )
+
+        self.num_momentum_dims = random.randint(1, 5)
+        self.obs_size = 2 * self.num_momentum_dims
+        self.total_steps = 0
+
+        self.pos_list = []
+        self.vel_list = []
+        for j in range(self.num_momentum_dims):
+            dym_type = np.random.choice(["sin", "cos", "x", "y", "rad"])
+            self.pos_list.append(PosDym(dym_type))
+            self.vel_list.append(VelDym(dym_type, self.action_dim))
+        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=hps)
+        self.eps_steps = 0
+
+    def step(self, action):
+        if self.discrete:
+            action = self.discrete_choices[action]
+        next_state_and_reward = []
+        if isinstance(action, int) or isinstance(action, float):
+            action = [action]
+        else:
+            action = list(action)
+        with torch.no_grad():
+            for v, p in zip(self.vel_list, self.pos_list):
+                # first update position and velocity
+                v.update(action, p)
+                p.update(v)
+                # append to next state
+                next_state_and_reward.append(p.get_position())
+                next_state_and_reward.append(v.get_velocity())
+            next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
+        self.state = next_state_and_reward[:self.obs_size]
+        self.eps_steps += 1
+        if self.constant_reward:
+            reward = 1.
+        else:
+            reward = next_state_and_reward[-1]
+
+        term_steps = 50
+        terminated = self.eps_steps > term_steps
+        self.total_steps += 1
+        return np.array(self.state), reward, terminated, False, None
+
+    def render(self):
+        pass
+
+    def reset(self, **kwargs):
+        velocity_position_states = []
+        for v, p in zip(self.vel_list, self.pos_list):
+            velocity_position_states.append(p.reset())
+            velocity_position_states.append(v.reset())
+        self.state = np.array(velocity_position_states)
+        self.eps_steps = 0
+        return self.state, None
+
+
 class FullNNEnv(gym.Env):
 
     def __init__(self, hps):
@@ -433,6 +507,8 @@ def get_dataset(hps):
         env = FullNNEnv(hps)
     elif env_name == "MomentumEnv":
         env = MomentumEnv(hps)
+    elif env_name == "FullMomentumEnv":
+        env = FullMomentumEnv(hps)
     else:
         env = gym.make(env_name)
     return env

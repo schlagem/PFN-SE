@@ -569,7 +569,6 @@ def train(
 
             if verbose:
                 print("-" * 89)
-                print(total_positional_losses)
                 print(
                     f"| end of epoch {epoch:3d} | time: {(time.time() - epoch_start_time):5.2f}s | mean loss {total_loss:5.2f} | "
                     f"pos losses {','.join([('-' if l != l else f'{l:5.2f}') for l in total_positional_losses])}, lr of zeroth group {optimizer.param_groups[0]['lr']}"

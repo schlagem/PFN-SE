@@ -22,7 +22,7 @@ torch.manual_seed(0)
 
 # maximum Dimension of observations + max dimension of action
 num_features = 14
-hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
+hps = {"env_name": "FullMomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
        "state_offset": 3.2802608490289904, "state_scale": 18.147661409701062, "tanh": True, "test": False,
        "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True, "width_hidden": 16,
        "no_norm": False}
@@ -36,12 +36,12 @@ train_len = 1000
 min_train_len = 500
 
 max_dataset_size = 1001
-epochs = 50
+epochs = 10
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
                      get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
                      # define the transformer size
-                     emsize=1024, nhead=8, nhid=1024, nlayers=6,
+                     emsize=512, nhead=4, nhid=1024, nlayers=6,
                      # how to encode the x and y inputs to the transformer
                      encoder_generator=encoders.Linear,
                      y_encoder_generator=encoders.Linear,
@@ -66,5 +66,5 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/large_momentum_with_decoder_model.pt")
+torch.save(trained_model.state_dict(), "trained_models/full_momentum_env.pt")
 
