@@ -1,4 +1,5 @@
-import grid_world
+import time
+
 from .prior import Batch
 from utils import default_device
 import random
@@ -6,6 +7,8 @@ import numpy as np
 import gymnasium as gym
 import torch
 from gymnasium import spaces
+
+torch.set_printoptions(sci_mode=False)
 
 
 class SinActivation(torch.nn.Module):
@@ -653,3 +656,163 @@ def get_train_batch(seq_len, batches, num_features, X, Y, hps):
         std = torch.std(Y[:, b], dim=0)
         Y[:, b] = torch.nan_to_num((Y[:, b] - mean) / std, nan=0)
     return X, Y
+
+
+def TNLU(max_mean, min_mean, minimum, to_round):
+    sampled_mean = np.exp(np.random.uniform(np.log(min_mean), np.log(max_mean)))
+    sampled_std = np.exp(np.random.uniform(np.log(min_mean), np.log(max_mean)))
+    value = np.random.normal(sampled_mean, sampled_std)
+    value_trunc = max(value, minimum)
+    if to_round:
+        return round(value_trunc)
+    return value_trunc
+
+
+class AdditiveNoiseLayer(torch.nn.Module):
+
+    def __init__(self, size, std, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # https://discuss.pytorch.org/t/how-to-fix-the-dropout-mask-for-different-batch/7119/2
+        # generate a mask in shape hidden
+        self.noise = torch.normal(mean=0., std=std, size=(size,))
+
+    def forward(self, x):
+        return x + self.noise
+
+
+def generate_bnn(in_size, out_size):
+    depth = TNLU(6, 1, 2, to_round=True)
+    width = TNLU(130, 5, 4, to_round=True)
+    additive_noise_std = TNLU(.3, 0.0001, 0.0, to_round=False)
+    init_std = TNLU(10., 0.01, 0.0, to_round=False)
+
+    def weight_init(m):
+        if isinstance(m, torch.nn.Linear):
+            torch.nn.init.normal_(m.weight, std=init_std)
+            if m.bias is not None:
+                torch.nn.init.normal_(m.bias, std=init_std)
+
+    use_bias = np.random.choice([True, False])
+    use_res_connection = np.random.choice([True, False])
+    act_funct = np.random.choice(
+        [torch.nn.Tanh, torch.nn.LeakyReLU, torch.nn.ReLU, torch.nn.ELU, SinActivation, NoOpActivation])
+    dropout = np.random.choice([True, False])
+    dropout_p = 0.9 * np.random.beta(np.random.uniform(0.1, 5.0), np.random.uniform(0.1, 5.0))
+    bnn_model = BNN(in_size, out_size, depth, width, use_bias, use_res_connection, act_funct, dropout, dropout_p,
+                    additive_noise_std)
+    bnn_model.apply(weight_init)
+    return bnn_model
+
+
+class BNN(torch.nn.Module):
+
+    def __init__(self,
+                 input_size,
+                 output_size,
+                 depth,
+                 width,
+                 use_bias,
+                 use_res_conn,
+                 activation,
+                 dropout,
+                 dropout_p,
+                 additive_noise_std,
+                 *args,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.residual_flag = use_res_conn
+        self.in_lin = torch.nn.Linear(input_size, width, bias=use_bias)
+        self.in_act = activation()
+        layer_list = []
+        for i in range(depth):
+            seq_list = [torch.nn.Linear(width, width, bias=use_bias)]
+            if dropout:
+                seq_list.append(CustomFixedDropout(width, dropout_p))
+            seq_list.append(AdditiveNoiseLayer(width, additive_noise_std))
+            seq_list.append(activation())
+            layer_list.append(torch.nn.Sequential(*seq_list))
+        self.layer_list = torch.nn.ModuleList(layer_list)
+        self.out_lin = torch.nn.Linear(width, output_size, bias=use_bias)
+
+    def forward(self, x):
+        residual = self.in_lin(x)
+        out = self.in_act(residual)
+        for layer in self.layer_list:
+            out = layer(out) + self.residual_flag * residual
+        return self.out_lin(out)
+
+
+def get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters):
+    # generate input data
+    X = torch.rand((seq_len, batch_size, num_features))
+    Y = torch.Tensor()
+    for b in range(batch_size):
+        # sample random state dim and action dim
+        state_dim = np.random.randint(3, 12)
+        action_dim = np.random.randint(1, 4)
+
+        # zero out not used action dims
+        X[:, b, state_dim:-3] = 0
+        X[:, b, num_features-3+action_dim:] = 0
+
+        # sample BNN for state dym
+        state_dynamics_bnn = generate_bnn(state_dim + action_dim, state_dim)
+        # forward state dym BNN
+        # TODO improve representation of action
+        next_state = state_dynamics_bnn(
+            torch.cat((X[:, b:b+1, :state_dim], X[:, b:b+1, num_features - 3:num_features - 3 + action_dim]), dim=2))
+
+        # sample BNN for reward
+        reward_dynamics_bnn = generate_bnn(2 * state_dim + action_dim, 1)
+
+        # forward BNN for reward
+        reward = reward_dynamics_bnn(
+            torch.cat((X[:, b:b + 1, :state_dim], X[:, b:b + 1, num_features - 3:num_features - 3 + action_dim],
+                       next_state), dim=2))
+
+        final_total_dym = torch.cat(
+            (next_state, torch.zeros((seq_len, 1, num_features - 1 - state_dim)), reward), dim=2)
+
+        # Fill Output
+        Y = torch.cat((Y, final_total_dym), dim=1)
+
+        # shuffle zero dims
+        state_per_dims = torch.randperm(num_features-3)
+        X[:, b:b+1, :num_features-3] = X[:, b:b+1, :num_features-3][:, :, state_per_dims]
+
+        Y[:, b:b+1, :num_features-3] = Y[:, b:b+1, :num_features-3][:, :, state_per_dims]
+
+        action_per_dim = torch.randperm(3)
+        X[:, b:b+1, num_features-3:] = X[:, b:b+1, num_features-3:][:, :, action_per_dim]
+
+    # 0 mean 1 variacne Normalize
+    x_means = torch.mean(X, dim=0)
+    x_stds = torch.std(X, dim=0)
+    X = torch.nan_to_num((X - x_means) / x_stds, nan=0)
+
+    # min max scaling
+    y_min = Y.min(dim=0, keepdim=True).values.min(dim=0, keepdim=True).values
+    y_max = Y.max(dim=0, keepdim=True).values.max(dim=0, keepdim=True).values
+    Y = torch.nan_to_num((Y - y_min)/(y_max - y_min))
+
+    # 0 mean 1 variacne Normalize
+    y_means = torch.mean(Y, dim=0)
+    y_stds = torch.std(Y, dim=0)
+    Y = torch.nan_to_num((Y - y_means) / y_stds, nan=0)
+    return X, Y
+
+
+@torch.no_grad()
+def get_bnn_batch(
+        batch_size,
+        seq_len,
+        num_features,
+        device=default_device,
+        hyperparameters=None,
+        **kwargs
+):
+
+    X, Y = get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters)
+    # print(Y.max(dim=0, keepdim=True).values.max(dim=1, keepdim=True).values)
+    # print(Y.min(dim=0, keepdim=True).values.min(dim=1, keepdim=True).values)
+    return Batch(x=X, y=Y, target_y=Y)
