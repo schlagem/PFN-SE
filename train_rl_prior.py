@@ -36,7 +36,7 @@ train_len = 1000
 min_train_len = 500
 
 max_dataset_size = 1001
-epochs = 10
+epochs = 50
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
                      get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
@@ -51,7 +51,7 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
                      # an epoch length is defined by `steps_per_epoch`
                      # the below means we do 10 epochs, with 100 batches per epoch and 4 datasets per batch
                      # that means we look at 10*1000*4 = 4000 datasets. Considerably less than in the demo.
-                     epochs=epochs, warmup_epochs=epochs//4, steps_per_epoch=100, batch_size=4, # steps per epoch 100
+                     epochs=epochs, warmup_epochs=epochs//4, steps_per_epoch=100, batch_size=16, # steps per epoch 100
                      # the lr is what you want to tune! usually something in [.00005,.0001,.0003,.001] works best
                      # the lr interacts heavily with `batch_size` (smaller `batch_size` -> smaller best `lr`)
                      lr=.00005,
@@ -66,5 +66,5 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/full_momentum_env.pt")
+torch.save(trained_model.state_dict(), "trained_models/temp.pt")
 
