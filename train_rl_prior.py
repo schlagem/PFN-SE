@@ -16,9 +16,9 @@ from decoder import DecoderModel
 import warnings
 warnings.filterwarnings('ignore', category=UserWarning)
 
-random.seed(0)
-np.random.seed(0)
-torch.manual_seed(0)
+#random.seed(0)
+#np.random.seed(0)
+#torch.manual_seed(0)
 
 # maximum Dimension of observations + max dimension of action
 num_features = 14
@@ -27,9 +27,9 @@ hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": Fal
        "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True, "width_hidden": 16,
        "no_norm": False}
 
-criterion = nn.MSELoss(reduction='none')
+hps = {}
 
-decoder_dict = {"standard": (DecoderModel, 14)}
+criterion = nn.MSELoss(reduction='none')
 
 # number of data points provided at train time
 train_len = 1000
@@ -39,12 +39,13 @@ max_dataset_size = 1001
 epochs = 50
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
-                     get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
+                     get_batch_method=priors.rl_prior.get_bnn_batch, criterion=criterion,
                      # define the transformer size
-                     emsize=1024, nhead=16, nhid=2048, nlayers=10,
+                     # emsize=1024, nhead=16, nhid=2048, nlayers=10,
+                     emsize=512, nhead=4, nhid=1024, nlayers=6,
                      # how to encode the x and y inputs to the transformer
-                     encoder_generator=encoders.StateActionEncoderCat,
-                     y_encoder_generator=encoders.NextStateRewardEncoderCat,
+                     encoder_generator=encoders.Linear,
+                     y_encoder_generator=encoders.Linear,
                      # these are given to the prior, which needs to know how many features we have etc
                      extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
                      # change the number of epochs to put more compute into a training
@@ -66,6 +67,5 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/temp.pt")
 
-
+torch.save(trained_model.state_dict(), "trained_models/BNN_tanh.pt")
