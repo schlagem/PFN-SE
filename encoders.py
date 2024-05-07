@@ -302,8 +302,10 @@ class StateActionEncoderCat(nn.Module):
         super().__init__()
         self.num_features = num_features
         self.emsize = emsize
-        self.state_encoder = nn.Linear(num_features-3, emsize//2)
-        self.action_encoder = nn.Linear(3, emsize//2)
+        self.state_encoder = torch.nn.Sequential(nn.Linear(num_features - 3, 256), torch.nn.ReLU(),
+                                                 nn.Linear(256, emsize // 4))
+        self.action_encoder = torch.nn.Sequential(nn.Linear(3, 256), torch.nn.ReLU(),
+                                             nn.Linear(256, emsize // 4))
         self.replace_nan_by_zero = replace_nan_by_zero
 
     def forward(self, x):
@@ -311,34 +313,14 @@ class StateActionEncoderCat(nn.Module):
             x = torch.nan_to_num(x, nan=0.0)
         state_enc = self.state_encoder(x[:, :, :11])
         action_enc = self.action_encoder(x[:, :, 11:])
-        x = torch.cat((state_enc, action_enc), dim=2)
+        zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize//2), 0.)
+        x = torch.cat((state_enc, action_enc, zero_pad), dim=2)
         return x
 
     def __setstate__(self, state):
         super().__setstate__(state)
         self.__dict__.setdefault("replace_nan_by_zero", True)
 
-
-class StateActionEncoderAggregated(nn.Module):
-    def __init__(self, num_features, emsize, replace_nan_by_zero=False):
-        super().__init__()
-        self.num_features = num_features
-        self.emsize = emsize
-        self.state_encoder = nn.Linear(num_features-3, emsize)
-        self.action_encoder = nn.Linear(3, emsize)
-        self.replace_nan_by_zero = replace_nan_by_zero
-
-    def forward(self, x):
-        if self.replace_nan_by_zero:
-            x = torch.nan_to_num(x, nan=0.0)
-        state_enc = self.state_encoder(x[:, :, :11])
-        action_enc = self.action_encoder(x[:, :, 11:])
-        x = state_enc + action_enc
-        return x
-
-    def __setstate__(self, state):
-        super().__setstate__(state)
-        self.__dict__.setdefault("replace_nan_by_zero", True)
 
 
 class NextStateRewardEncoderCat(nn.Module):
@@ -346,8 +328,10 @@ class NextStateRewardEncoderCat(nn.Module):
         super().__init__()
         self.num_features = num_features
         self.emsize = emsize
-        self.state_encoder = nn.Linear(num_features - 3, emsize // 2)
-        self.r_encoder = nn.Linear(1, emsize // 2)
+        self.state_encoder = torch.nn.Sequential(nn.Linear(num_features - 3, 256), torch.nn.ReLU(),
+                                                 nn.Linear(256, emsize // 4))
+        self.r_encoder = torch.nn.Sequential(nn.Linear(1, 256), torch.nn.ReLU(),
+                                             nn.Linear(256, emsize // 4))
         self.replace_nan_by_zero = replace_nan_by_zero
 
     def forward(self, x):
@@ -355,29 +339,8 @@ class NextStateRewardEncoderCat(nn.Module):
             x = torch.nan_to_num(x, nan=0.0)
         state_enc = self.state_encoder(x[:, :, :11])
         r_enc = self.r_encoder(x[:, :, 13:])
-        x = torch.cat((state_enc, r_enc), dim=2)
-        return x
-
-    def __setstate__(self, state):
-        super().__setstate__(state)
-        self.__dict__.setdefault("replace_nan_by_zero", True)
-
-
-class NextStateRewardEncoderAggregated(nn.Module):
-    def __init__(self, num_features, emsize, replace_nan_by_zero=False):
-        super().__init__()
-        self.num_features = num_features
-        self.emsize = emsize
-        self.state_encoder = nn.Linear(num_features - 3, emsize)
-        self.r_encoder = nn.Linear(1, emsize)
-        self.replace_nan_by_zero = replace_nan_by_zero
-
-    def forward(self, x):
-        if self.replace_nan_by_zero:
-            x = torch.nan_to_num(x, nan=0.0)
-        state_enc = self.state_encoder(x[:, :, :11])
-        r_enc = self.r_encoder(x[:, :, 13:])
-        x = state_enc + r_enc
+        zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize//2), 0.)
+        x = torch.cat((zero_pad, state_enc, r_enc), dim=2)
         return x
 
     def __setstate__(self, state):

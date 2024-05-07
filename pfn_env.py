@@ -81,12 +81,7 @@ class ArtificialEnv(gym.Env):
             ep = 0
             steps_after_done = 0
             for i in range(1001):
-                if ep < 7:
-                    action = 0
-                elif ep < 15:
-                    action = 1
-                else:
-                    action = self.real_env.action_space.sample()
+                action = self.real_env.action_space.sample()
                 if isinstance(action, int) or isinstance(action, np.int64):
                     action_array = np.array([action])  # TODO detect action type
                 else:

@@ -3,7 +3,7 @@
 #SBATCH --cpus-per-task 8
 #SBATCH --ntasks=1
 #SBATCH --mem 48000 # memory pool for all cores (4GB)
-#SBATCH -t 3-00:00 # time (D-HH:MM)
+#SBATCH -t 1-12:00 # time (D-HH:MM)
 #SBATCH -a 0-15 # array size
 #SBATCH -J BO_for_HP_oswm # Job name
 #SBATCH -D /work/dlclarge1/schlagem-oswm/PFN-SE
