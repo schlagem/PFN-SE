@@ -8,7 +8,7 @@ import gymnasium as gym
 import torch
 from gymnasium import spaces
 
-torch.set_printoptions(sci_mode=False)
+torch.set_printoptions(sci_mode=False, precision=10)
 
 
 class SinActivation(torch.nn.Module):
@@ -770,6 +770,7 @@ def get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters):
             torch.cat((X[:, b:b + 1, :state_dim], X[:, b:b + 1, num_features - 3:num_features - 3 + action_dim],
                        next_state), dim=2))
 
+
         final_total_dym = torch.cat(
             (next_state, torch.zeros((seq_len, 1, num_features - 1 - state_dim)), reward), dim=2)
 
@@ -791,14 +792,18 @@ def get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters):
     X = torch.nan_to_num((X - x_means) / x_stds, nan=0)
 
     # min max scaling
+    """
     y_min = Y.min(dim=0, keepdim=True).values.min(dim=0, keepdim=True).values
     y_max = Y.max(dim=0, keepdim=True).values.max(dim=0, keepdim=True).values
     Y = torch.nan_to_num((Y - y_min)/(y_max - y_min))
+    """
 
     # 0 mean 1 variacne Normalize
     y_means = torch.mean(Y, dim=0)
     y_stds = torch.std(Y, dim=0)
     Y = torch.nan_to_num((Y - y_means) / y_stds, nan=0)
+    Y = torch.where(Y > 100., torch.log(Y) + 100, Y)
+    Y = torch.where(Y < -100., torch.exp(Y) - 100, Y)
     return X, Y
 
 
