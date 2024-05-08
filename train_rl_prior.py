@@ -9,7 +9,7 @@ from train import train
 import priors.rl_prior
 import encoders
 import utils
-from decoder import DecoderModel
+from decoder import *
 
 # There might be warnings during training, regarding efficiency and a missing GPU, if using CPU
 # We do not care about these for this tutorial
@@ -27,9 +27,29 @@ hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": Fal
        "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True, "width_hidden": 16,
        "no_norm": False}
 
-hps = {}
+
+hps = {"decoder_activation": "sigmoid", "decoder_depth": 2, "decoder_res_connection": True, "decoder_type": "cat",
+       "decoder_use_bias": False, "decoder_width": 64, "encoder_activation": "gelu", "encoder_depth": 3,
+       "encoder_res_connection": True, "encoder_type": "mlp", "encoder_use_bias": True, "encoder_width": 512,
+       "env_name": "MomentumEnv", "relu": True, "sigmoid": True, "sin": True, "state_offset": 4.494979105877573,
+       "state_scale": 10.82035697565969, "tanh": True, "use_bias": False, "use_dropout": False, "use_layer_norm": False,
+       "use_res_connection": False}
 
 criterion = nn.MSELoss(reduction='none')
+
+if hps["encoder_type"] == "mlp":
+    gen_x = mlp_encoder_generator_generator(hps)
+    gen_y = gen_x
+elif hps["encoder_type"] == "cat":
+    gen_x = cat_encoder_generator_generator(hps, target=False)
+    gen_y = cat_encoder_generator_generator(hps, target=True)
+
+if hps["encoder_type"] == "mlp":
+    dec_model = mlp_decoder_generator_generator(hps)
+elif hps["decoder_type"] == "cat":
+    dec_model = cat_decoder_generator_generator(hps)
+
+decoder_dict = {"standard": (dec_model, 14)}
 
 # number of data points provided at train time
 train_len = 1000
@@ -44,15 +64,15 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
                      # emsize=1024, nhead=16, nhid=2048, nlayers=10,
                      emsize=512, nhead=4, nhid=1024, nlayers=6,
                      # how to encode the x and y inputs to the transformer
-                     encoder_generator=encoders.Linear,
-                     y_encoder_generator=encoders.Linear,
+                     encoder_generator=gen_x,
+                     y_encoder_generator=gen_y,
                      # these are given to the prior, which needs to know how many features we have etc
                      extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
                      # change the number of epochs to put more compute into a training
                      # an epoch length is defined by `steps_per_epoch`
                      # the below means we do 10 epochs, with 100 batches per epoch and 4 datasets per batch
                      # that means we look at 10*1000*4 = 4000 datasets. Considerably less than in the demo.
-                     epochs=epochs, warmup_epochs=epochs//4, steps_per_epoch=100, batch_size=16, # steps per epoch 100
+                     epochs=epochs, warmup_epochs=epochs//4, steps_per_epoch=100, batch_size=4, # steps per epoch 100
                      # the lr is what you want to tune! usually something in [.00005,.0001,.0003,.001] works best
                      # the lr interacts heavily with `batch_size` (smaller `batch_size` -> smaller best `lr`)
                      lr=.00005,
@@ -62,9 +82,10 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
                      # a function that (randomly) returns lengths of the training set
                      # the below definition, will just choose the size uniformly at random up to `max_dataset_size`
                      #single_eval_pos_gen=utils.get_uniform_single_eval_pos_sampler(train_len + 1, min_len=train_len))
-                     single_eval_pos_gen=utils.get_weighted_single_eval_pos_sampler(train_len, min_train_len, p=0.4))
+                     single_eval_pos_gen=utils.get_weighted_single_eval_pos_sampler(train_len, min_train_len, p=0.4),
+                     decoder_dict=decoder_dict)
 
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/BNN_testing.pt")
+torch.save(trained_model.state_dict(), "trained_models/testing.pt")

@@ -145,18 +145,6 @@ def get_random_activation(relu=True, sin=True, tanh=True, sigmoid=True):
     return act_fun
 
 
-def NNgenerator(input_size, target_num=1):
-    model = torch.nn.Sequential(torch.nn.Linear(input_size, 32),
-                                get_random_activation(),
-                                torch.nn.Linear(32, 32),
-                                get_random_activation(),
-                                torch.nn.Linear(32, 32),
-                                get_random_activation(),
-                                torch.nn.Linear(32, target_num))
-
-    return model.float()
-
-
 class CustomFixedDropout(torch.nn.Module):
 
     def __init__(self, size, p, *args, **kwargs):
@@ -201,19 +189,11 @@ class HPStepNN(torch.nn.Module):
         self.out_lin = torch.nn.Linear(width_hidden, output_size, bias=use_bias)
 
     def forward(self, x):
-        residual = self.in_lin(x)  # TODO norm, mask, dropout
+        residual = self.in_lin(x)
         out = self.in_act(residual)
         for layer in self.layer_list:
             out = layer(out) + self.residual_flag * residual
         return self.out_lin(out)
-
-
-def SmallNNGen(input_size, output_size):
-    model = torch.nn.Sequential(torch.nn.Linear(input_size, 64),
-                                get_random_activation(),
-                                torch.nn.Linear(64, output_size))
-
-    return model.float()
 
 
 class MomentumEnv(gym.Env):
@@ -268,7 +248,6 @@ class MomentumEnv(gym.Env):
         with torch.no_grad():
             for g in self.NN_list:
                 next_state_and_reward.append(g.forward(state_action).item())
-            # TODO use update of vel and pos dym
             for v, p in zip(self.vel_list, self.pos_list):
                 # first update position and velocity
                 v.update(action, p)
@@ -299,135 +278,6 @@ class MomentumEnv(gym.Env):
             velocity_position_states.append(p.reset())
             velocity_position_states.append(v.reset())
         self.state = np.concatenate((NNstates, velocity_position_states))
-        self.eps_steps = 0
-        return self.state, None
-
-
-class FullMomentumEnv(gym.Env):
-
-    def __init__(self, hps):
-        self.state = None
-
-        self.constant_reward = random.random() > 0.5
-        self.discrete = False
-        if random.random() > 0.5:
-            self.action_dim = 1
-            self.discrete = True
-            dim = np.random.randint(2, high=5)
-            self.action_space = spaces.Discrete(dim)
-            self.discrete_choices = 6 * (np.random.rand(dim) - 0.5)
-        else:
-            self.action_dim = np.random.randint(1, high=4)
-            max_action = 2.5 * np.random.rand() + 0.5
-            self.action_space = spaces.Box(
-                low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
-            )
-
-        self.num_momentum_dims = random.randint(1, 5)
-        self.obs_size = 2 * self.num_momentum_dims
-        self.total_steps = 0
-
-        self.pos_list = []
-        self.vel_list = []
-        for j in range(self.num_momentum_dims):
-            dym_type = np.random.choice(["sin", "cos", "x", "y", "rad"])
-            self.pos_list.append(PosDym(dym_type))
-            self.vel_list.append(VelDym(dym_type, self.action_dim))
-        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=hps)
-        self.eps_steps = 0
-
-    def step(self, action):
-        if self.discrete:
-            action = self.discrete_choices[action]
-        next_state_and_reward = []
-        if isinstance(action, int) or isinstance(action, float):
-            action = [action]
-        else:
-            action = list(action)
-        with torch.no_grad():
-            for v, p in zip(self.vel_list, self.pos_list):
-                # first update position and velocity
-                v.update(action, p)
-                p.update(v)
-                # append to next state
-                next_state_and_reward.append(p.get_position())
-                next_state_and_reward.append(v.get_velocity())
-            next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
-        self.state = next_state_and_reward[:self.obs_size]
-        self.eps_steps += 1
-        if self.constant_reward:
-            reward = 1.
-        else:
-            reward = next_state_and_reward[-1]
-
-        term_steps = 50
-        terminated = self.eps_steps > term_steps
-        self.total_steps += 1
-        return np.array(self.state), reward, terminated, False, None
-
-    def render(self):
-        pass
-
-    def reset(self, **kwargs):
-        velocity_position_states = []
-        for v, p in zip(self.vel_list, self.pos_list):
-            velocity_position_states.append(p.reset())
-            velocity_position_states.append(v.reset())
-        self.state = np.array(velocity_position_states)
-        self.eps_steps = 0
-        return self.state, None
-
-
-class FullNNEnv(gym.Env):
-
-    def __init__(self, hps):
-        self.state = None
-
-        self.discrete = False
-        if random.random() > 0.85:
-            self.action_dim = 1
-            self.discrete = True
-            dim = np.random.randint(2, high=5)
-            self.action_space = spaces.Discrete(dim)
-        else:
-            self.action_dim = np.random.randint(1, high=4)
-            max_action = np.random.randint(1, high=5, size=self.action_dim)
-            self.action_space = spaces.Box(
-                low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
-            )
-
-        self.obs_size = random.randint(3, 11)
-
-        self.state_scale = hps["state_scale"] * np.random.rand(self.obs_size)
-        self.state_offset = hps["state_offset"] * (np.random.rand() - 0.5)
-
-        self.total_steps = 0
-
-        self.state_to_hidden = HPStepNN(self.obs_size, 64, hps)
-        self.action_to_hidden = HPStepNN(self.action_dim, 64, hps)
-        self.hidden_to_nextstate = HPStepNN(64, self.obs_size, hps)
-        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, 1, hps)
-        self.eps_steps = 0
-
-    def step(self, action):
-        if isinstance(action, int):
-            action = [action]
-        else:
-            action = list(action)
-        with torch.no_grad():
-            hidden_action = self.action_to_hidden(torch.tensor(action).float())
-            hidden_state = self.state_to_hidden(torch.tensor(self.state).float())
-            new_state = self.hidden_to_nextstate(hidden_state + hidden_action)
-            reward = self.reward_model.forward(torch.cat((new_state, torch.tensor(self.state).float(), torch.tensor(action).float())))
-        self.state = new_state.numpy()
-        terminated = False
-        return self.state, reward, terminated, False, None
-
-    def render(self):
-        pass
-
-    def reset(self, **kwargs):
-        self.state = (np.random.rand(self.obs_size) - self.state_offset) * self.state_scale
         self.eps_steps = 0
         return self.state, None
 
@@ -683,8 +533,8 @@ class AdditiveNoiseLayer(torch.nn.Module):
 def generate_bnn(in_size, out_size):
     depth = TNLU(6, 1, 2, to_round=True)
     width = TNLU(130, 5, 4, to_round=True)
-    additive_noise_std = TNLU(.3, 0.0001, 0.0, to_round=False)
-    init_std = TNLU(10., 0.01, 0.0, to_round=False)
+    additive_noise_std = 0.001 * np.random.rand() + 0.0003 #  TNLU(.3, 0.0001, 0.0, to_round=False)
+    init_std = 0.1 * np.random.rand() + 0.09  # TNLU(10., 0.01, 0.0, to_round=False)
 
     def weight_init(m):
         if isinstance(m, torch.nn.Linear):
@@ -693,14 +543,15 @@ def generate_bnn(in_size, out_size):
                 torch.nn.init.normal_(m.bias, std=init_std)
 
     use_bias = np.random.choice([True, False])
-    use_res_connection = np.random.choice([True, False])
+    use_res_connection = False # np.random.choice([True, False])
     act_funct = np.random.choice(
         [torch.nn.Tanh, torch.nn.LeakyReLU, torch.nn.ReLU, torch.nn.ELU, SinActivation, NoOpActivation])
+    act_funct = np.random.choice([torch.nn.Tanh, SinActivation])
     dropout = np.random.choice([True, False])
-    dropout_p = 0.9 * np.random.beta(np.random.uniform(0.1, 5.0), np.random.uniform(0.1, 5.0))
+    dropout_p = 0.9 # 0.9 * np.random.beta(np.random.uniform(0.1, 5.0), np.random.uniform(0.1, 5.0))
     bnn_model = BNN(in_size, out_size, depth, width, use_bias, use_res_connection, act_funct, dropout, dropout_p,
                     additive_noise_std)
-    bnn_model.apply(weight_init)
+    # bnn_model.apply(weight_init)
     return bnn_model
 
 
@@ -802,8 +653,8 @@ def get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters):
     y_means = torch.mean(Y, dim=0)
     y_stds = torch.std(Y, dim=0)
     Y = torch.nan_to_num((Y - y_means) / y_stds, nan=0)
-    Y = torch.where(Y > 100., torch.log(Y) + 100, Y)
-    Y = torch.where(Y < -100., torch.exp(Y) - 100, Y)
+    #Y = torch.where(Y > 100., torch.log(Y) + 100, Y)
+    #Y = torch.where(Y < -100., torch.exp(Y) - 100, Y)
     return X, Y
 
 
