@@ -3,57 +3,14 @@
 #import numpy as np
 import torch.nn as nn
 import torch
-from owsm_worker import cat_encoder_generator_generator, mlp_encoder_generator_generator
-from ConfigSpace import ConfigurationSpace
-from ConfigSpace import UniformIntegerHyperparameter
-from ConfigSpace import UniformFloatHyperparameter
-from ConfigSpace import CategoricalHyperparameter
-from ConfigSpace import EqualsCondition
-
-
-
-def get_cs_space():
-    cs = ConfigurationSpace()
-
-    cs.add_hyperparameter(CategoricalHyperparameter("env_name", choices=["NNEnv", "MomentumEnv"]))
-
-    cs.add_hyperparameter(CategoricalHyperparameter("use_bias", choices=[True, False]))
-
-    cs.add_hyperparameter(CategoricalHyperparameter("use_dropout", choices=[True, False]))
-    cs.add_hyperparameter(UniformFloatHyperparameter("dropout_p", lower=0.1, upper=0.9))
-    cs.add_condition(EqualsCondition(cs['dropout_p'], cs['use_dropout'], True))
-
-    cs.add_hyperparameter(CategoricalHyperparameter("relu", choices=[True, False]))
-    cs.add_hyperparameter(CategoricalHyperparameter("sin", choices=[True, False]))
-    cs.add_hyperparameter(CategoricalHyperparameter("sigmoid", choices=[True, False]))
-    cs.add_hyperparameter(CategoricalHyperparameter("tanh", choices=[True, False]))
-
-    cs.add_hyperparameter(UniformFloatHyperparameter("state_scale", lower=1., upper=20.))
-    cs.add_hyperparameter(UniformFloatHyperparameter("state_offset", lower=1., upper=5.))
-
-    cs.add_hyperparameter(CategoricalHyperparameter("use_layer_norm", choices=[True, False]))
-
-    cs.add_hyperparameter(CategoricalHyperparameter("use_res_connection", choices=[True, False]))
-
-    # Encoder Hps
-    cs.add_hyperparameter(CategoricalHyperparameter("encoder_res_connection", choices=[True, False]))
-    cs.add_hyperparameter(CategoricalHyperparameter("encoder_use_bias", choices=[True, False]))
-    cs.add_hyperparameter(UniformIntegerHyperparameter("encoder_depth", lower=1, upper=6))
-    cs.add_hyperparameter(CategoricalHyperparameter("encoder_width", choices=[16, 64, 256, 512]))
-    cs.add_hyperparameter(CategoricalHyperparameter("encoder_activation", choices=["relu", "sigmoid", "gelu"]))
-    cs.add_hyperparameter(CategoricalHyperparameter("encoder_type", choices=["mlp", "cat"]))
-
-    # Decoder Hps
-    cs.add_hyperparameter(CategoricalHyperparameter("decoder_res_connection", choices=[True, False]))
-    cs.add_hyperparameter(CategoricalHyperparameter("decoder_use_bias", choices=[True, False]))
-    cs.add_hyperparameter(UniformIntegerHyperparameter("decoder_depth", lower=1, upper=6))
-    cs.add_hyperparameter(CategoricalHyperparameter("decoder_width", choices=[16, 64, 256, 512]))
-    cs.add_hyperparameter(CategoricalHyperparameter("decoder_activation", choices=["relu", "sigmoid", "gelu"]))
-    cs.add_hyperparameter(CategoricalHyperparameter("decoder_type", choices=["mlp", "cat"]))
-
-    return cs
-
-
+import matplotlib.pyplot as plt
+import numpy as np
+from priors.rl_prior import generate_bnn
+from priors.rl_prior import get_bnn_train_batch
+from priors.rl_prior import get_bnn_batch
+from priors.rl_prior import AdditiveNoiseLayer
+import time
+import tqdm
 """
 pygame.init()
 
@@ -137,24 +94,12 @@ while True:
     clock.tick(30)         # wait until next frame (at 60 FPS)
 """
 if __name__ == '__main__':
-    cs = get_cs_space()
-    for i in range(10):
-        cfg = cs.sample_configuration()
-        fixed_hps = {"num_hidden": 1,
-                     "width_hidden": 16,
-                     "test": False}
-
-        hps = {**cfg, **fixed_hps}
-
-        if hps["encoder_type"] == "mlp":
-            gen = mlp_encoder_generator_generator(hps)
-        elif hps["encoder_type"] == "cat":
-            gen = cat_encoder_generator_generator(hps, target=False)
-        gen = cat_encoder_generator_generator(hps, target=True)
-        # print(gen)
-        model = gen(14, 512)
-        o = model(torch.rand((1001, 4, 14)))
-        print(o)
-    # print(model)
-    # print(model(torch.rand((1001, 4, 14))))
+    t = []
+    for i in range(100):
+        s = time.time()
+        b = get_bnn_batch(4, 1001, 14)
+        t.append(time.time()-s)
+    print(max(t))
+    print(min(t))
+    print(sum(t)/len(t))
 
