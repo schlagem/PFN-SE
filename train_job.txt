@@ -2,7 +2,7 @@
 #SBATCH -p bosch_cpu-cascadelake # partition (queue)
 #SBATCH --cpus-per-task 8
 #SBATCH --ntasks=1
-#SBATCH --mem 16000 # memory pool for all cores (4GB)
+#SBATCH --mem 64000 # memory pool for all cores (4GB)
 #SBATCH -t 1-12:00 # time (D-HH:MM)
 #SBATCH -J OSWM_size_check # Job name
 #SBATCH -D /work/dlclarge1/schlagem-oswm/PFN-SE
