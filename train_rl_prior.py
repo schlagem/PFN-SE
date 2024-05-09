@@ -22,32 +22,26 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 # maximum Dimension of observations + max dimension of action
 num_features = 14
-hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
-       "state_offset": 3.2802608490289904, "state_scale": 18.147661409701062, "tanh": True, "test": False,
-       "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True, "width_hidden": 16,
-       "no_norm": False}
 
-
-hps = {"decoder_activation": "sigmoid", "decoder_depth": 2, "decoder_res_connection": True, "decoder_type": "cat",
-       "decoder_use_bias": False, "decoder_width": 64, "encoder_activation": "gelu", "encoder_depth": 3,
-       "encoder_res_connection": True, "encoder_type": "mlp", "encoder_use_bias": True, "encoder_width": 512,
-       "env_name": "MomentumEnv", "relu": True, "sigmoid": True, "sin": True, "state_offset": 4.494979105877573,
-       "state_scale": 10.82035697565969, "tanh": True, "use_bias": False, "use_dropout": False, "use_layer_norm": False,
-       "use_res_connection": False}
+encoder_decoder_hps = {"decoder_activation": "sigmoid", "decoder_depth": 2, "decoder_res_connection": True,
+                       "decoder_type": "cat", "decoder_use_bias": False, "decoder_width": 64,
+                       "encoder_activation": "gelu", "encoder_depth": 3,
+                       "encoder_res_connection": True, "encoder_type": "cat", "encoder_use_bias": True,
+                       "encoder_width": 512}
 
 criterion = nn.MSELoss(reduction='none')
 
-if hps["encoder_type"] == "mlp":
-    gen_x = mlp_encoder_generator_generator(hps)
+if encoder_decoder_hps["encoder_type"] == "mlp":
+    gen_x = mlp_encoder_generator_generator(encoder_decoder_hps)
     gen_y = gen_x
-elif hps["encoder_type"] == "cat":
-    gen_x = cat_encoder_generator_generator(hps, target=False)
-    gen_y = cat_encoder_generator_generator(hps, target=True)
+elif encoder_decoder_hps["encoder_type"] == "cat":
+    gen_x = cat_encoder_generator_generator(encoder_decoder_hps, target=False)
+    gen_y = cat_encoder_generator_generator(encoder_decoder_hps, target=True)
 
-if hps["encoder_type"] == "mlp":
-    dec_model = mlp_decoder_generator_generator(hps)
-elif hps["decoder_type"] == "cat":
-    dec_model = cat_decoder_generator_generator(hps)
+if encoder_decoder_hps["encoder_type"] == "mlp":
+    dec_model = mlp_decoder_generator_generator(encoder_decoder_hps)
+elif encoder_decoder_hps["decoder_type"] == "cat":
+    dec_model = cat_decoder_generator_generator(encoder_decoder_hps)
 
 decoder_dict = {"standard": (dec_model, 14)}
 
@@ -57,9 +51,14 @@ min_train_len = 500
 
 max_dataset_size = 1001
 epochs = 50
+
+# Prior HPS
+hps = {"test": False, "env_name": "VaryArchitectureMomentumEnv", "state_offset": 4.494979105877573,
+       "state_scale": 10.82035697565969}
+
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
-                     get_batch_method=priors.rl_prior.get_bnn_batch, criterion=criterion,
+                     get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
                      # define the transformer size
                      # emsize=1024, nhead=16, nhid=2048, nlayers=10,
                      emsize=512, nhead=4, nhid=1024, nlayers=6,

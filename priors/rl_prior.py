@@ -190,7 +190,7 @@ class HPStepNN(torch.nn.Module):
 
     def forward(self, x):
         residual = self.in_lin(x)
-        out = self.in_act(residual)
+        out = self.in_act(residual) + self.residual_flag * residual
         for layer in self.layer_list:
             out = layer(out) + self.residual_flag * residual
         return self.out_lin(out)
@@ -235,6 +235,111 @@ class MomentumEnv(gym.Env):
             self.vel_list.append(VelDym(dym_type, self.action_dim))
         self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=hps)
         self.eps_steps = 0
+
+    def step(self, action):
+        if self.discrete:
+            action = self.discrete_choices[action]
+        next_state_and_reward = []
+        if isinstance(action, int) or isinstance(action, float):
+            action = [action]
+        else:
+            action = list(action)
+        state_action = torch.tensor(list(self.state) + action).float()
+        with torch.no_grad():
+            for g in self.NN_list:
+                next_state_and_reward.append(g.forward(state_action).item())
+            for v, p in zip(self.vel_list, self.pos_list):
+                # first update position and velocity
+                v.update(action, p)
+                p.update(v)
+                # append to next state
+                next_state_and_reward.append(p.get_position())
+                next_state_and_reward.append(v.get_velocity())
+            next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
+        self.state = next_state_and_reward[:self.obs_size]
+        self.eps_steps += 1
+        if self.constant_reward:
+            reward = 1.
+        else:
+            reward = next_state_and_reward[-1]
+
+        term_steps = 50
+        terminated = self.eps_steps > term_steps
+        self.total_steps += 1
+        return np.array(self.state), reward, terminated, False, None
+
+    def render(self):
+        pass
+
+    def reset(self, **kwargs):
+        NNstates = (np.random.rand(self.obs_size - 2 * self.num_momentum_dims) - self.state_offset) * self.state_scale
+        velocity_position_states = []
+        for v, p in zip(self.vel_list, self.pos_list):
+            velocity_position_states.append(p.reset())
+            velocity_position_states.append(v.reset())
+        self.state = np.concatenate((NNstates, velocity_position_states))
+        self.eps_steps = 0
+        return self.state, None
+
+
+class VaryMomentumEnv(gym.Env):
+
+    def __init__(self, hps):
+        self.state = None
+
+        self.constant_reward = random.random() > 0.5
+        self.discrete = False
+        if random.random() > 0.5:
+            self.action_dim = 1
+            self.discrete = True
+            dim = np.random.randint(2, high=5)
+            self.action_space = spaces.Discrete(dim)
+            self.discrete_choices = 6 * (np.random.rand(dim) - 0.5)
+        else:
+            self.action_dim = np.random.randint(1, high=4)
+            max_action = 2.5 * np.random.rand() + 0.5
+            self.action_space = spaces.Box(
+                low=-max_action, high=max_action, shape=(self.action_dim,), dtype=np.float32
+            )
+
+        self.obs_size = random.randint(3, 11)
+        # maximum of momentum dims are obs_size // 2 min num is 0 is
+        self.num_momentum_dims = np.random.randint(0, (self.obs_size//2) + 1)
+        self.state_scale = hps["state_scale"] * np.random.rand(self.obs_size - 2 * self.num_momentum_dims)
+        self.state_offset = hps["state_offset"] * (np.random.rand() - 0.5)
+        self.total_steps = 0
+
+        self.NN_list = []
+        for i in range(self.obs_size - 2 * self.num_momentum_dims):
+            # TODO sample set of NN hyper parameter
+            cfg = self.generate_nn_config()
+            self.NN_list.append(HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=cfg))
+
+        self.pos_list = []
+        self.vel_list = []
+        for j in range(self.num_momentum_dims):
+            dym_type = np.random.choice(["sin", "cos", "x", "y", "rad"])
+            self.pos_list.append(PosDym(dym_type))
+            self.vel_list.append(VelDym(dym_type, self.action_dim))
+        cfg = self.generate_nn_config()
+        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=cfg)
+        self.eps_steps = 0
+
+    def generate_nn_config(self):
+        config = {}
+        config["num_hidden"] = np.random.randint(0, 3)
+        config["width_hidden"] = np.random.randint(4, 64)
+        config["use_bias"] = np.random.choice([True, False])
+        config["use_res_connection"] = np.random.choice([True, False])
+        config["use_dropout"] = np.random.choice([True, False])
+        config["dropout_p"] = 0.25 * np.random.rand() + 0.75
+        config["relu"] = np.random.choice([True, False])
+        config["sin"] = np.random.choice([True, False])
+        config["tanh"] = np.random.choice([True, False])
+        config["sigmoid"] = np.random.choice([True, False])
+        config["use_layer_norm"] = False # deprecated
+        return config
+
 
     def step(self, action):
         if self.discrete:
@@ -356,12 +461,10 @@ def get_dataset(hps):
         env_name = hps["env_name"]
     if env_name == "NNEnv":
         env = NNEnvironment(hps)
-    elif env_name == "FullNNEnv":
-        env = FullNNEnv(hps)
     elif env_name == "MomentumEnv":
         env = MomentumEnv(hps)
-    elif env_name == "FullMomentumEnv":
-        env = FullMomentumEnv(hps)
+    elif env_name == "VaryArchitectureMomentumEnv":
+        env = VaryMomentumEnv(hps)
     else:
         env = gym.make(env_name)
     return env
@@ -405,15 +508,6 @@ def get_test_batch(seq_len, batches, num_features, X, Y, hps):
         steps_after_done = 0
         ep = 0
         for i in range(seq_len):
-            #if ep <= 10:
-            #    action = 0
-            #elif ep <= 20:
-            #    action = 1
-            #elif ep <= 30:
-            #    act = 2
-            #elif ep <= 40:
-            #    action = 3
-            #else:
             action = env.action_space.sample()
 
             if isinstance(action, int):
@@ -522,7 +616,6 @@ class AdditiveNoiseLayer(torch.nn.Module):
 
     def __init__(self, size, std, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # https://discuss.pytorch.org/t/how-to-fix-the-dropout-mask-for-different-batch/7119/2
         # generate a mask in shape hidden
         self.noise = torch.normal(mean=0., std=std, size=(size,))
 
