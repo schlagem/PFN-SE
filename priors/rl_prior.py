@@ -196,6 +196,175 @@ class HPStepNN(torch.nn.Module):
         return self.out_lin(out)
 
 
+class HPStateActionNN(torch.nn.Module):
+
+    def __init__(self, state_size, action_size, hps, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        num_hidden = hps["num_hidden"]
+        width_hidden = hps["width_hidden"]
+        use_bias = hps["use_bias"]
+
+        self.residual_flag = hps["use_res_connection"]
+
+        self.state_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias)
+        self.state_in_act = get_random_activation(relu=hps["relu"],
+                                            sin=hps["sin"],
+                                            tanh=hps["tanh"],
+                                            sigmoid=hps["sigmoid"]
+                                            )
+        self.state_layer_list = []
+        for i in range(num_hidden):
+            seq_list = [torch.nn.Linear(width_hidden, width_hidden, bias=use_bias)]
+            if hps["use_dropout"]:
+                seq_list.append(CustomFixedDropout(width_hidden, hps["dropout_p"]))
+            seq_list.append(get_random_activation(relu=hps["relu"],
+                                                  sin=hps["sin"],
+                                                  tanh=hps["tanh"],
+                                                  sigmoid=hps["sigmoid"]
+                                                  ))
+            self.state_layer_list.append(torch.nn.Sequential(*seq_list))
+        self.state_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+
+        self.residual_flag = hps["a_use_res_connection"]
+
+        num_hidden = hps["a_num_hidden"]
+        width_hidden = hps["a_width_hidden"]
+        use_bias = hps["a_use_bias"]
+
+        self.action_in = torch.nn.Linear(action_size, width_hidden, bias=use_bias)
+        self.action_in_act = get_random_activation(relu=hps["a_relu"],
+                                            sin=hps["a_sin"],
+                                            tanh=hps["a_tanh"],
+                                            sigmoid=hps["a_sigmoid"]
+                                            )
+        self.action_layer_list = []
+        for i in range(num_hidden):
+            seq_list = [torch.nn.Linear(width_hidden, width_hidden, bias=use_bias)]
+            if hps["a_use_dropout"]:
+                seq_list.append(CustomFixedDropout(width_hidden, hps["a_dropout_p"]))
+            seq_list.append(get_random_activation(relu=hps["a_relu"],
+                                                  sin=hps["a_sin"],
+                                                  tanh=hps["a_tanh"],
+                                                  sigmoid=hps["a_sigmoid"]
+                                                  ))
+            self.action_layer_list.append(torch.nn.Sequential(*seq_list))
+        self.action_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+
+    def forward(self, s, a):
+        state_residual = self.state_in(s)
+        s_out = self.state_in_act(state_residual) + self.residual_flag * state_residual
+        for layer in self.state_layer_list:
+            s_out = layer(s_out) + self.residual_flag * state_residual
+        state_out = self.state_out_layer(s_out)
+
+        action_residual = self.action_in(a)
+        a_out = self.action_in_act(action_residual) + self.residual_flag * action_residual
+        for layer in self.action_layer_list:
+            a_out = layer(a_out) + self.residual_flag * action_residual
+        action_out = self.action_out_layer(a_out)
+        return state_out + action_out
+
+
+class HPRewardNN(torch.nn.Module):
+
+    def __init__(self, state_size, action_size, hps, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        num_hidden = hps["num_hidden"]
+        width_hidden = hps["width_hidden"]
+        use_bias = hps["use_bias"]
+
+        self.residual_flag = hps["use_res_connection"]
+
+        self.state_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias)
+        self.state_in_act = get_random_activation(relu=hps["relu"],
+                                            sin=hps["sin"],
+                                            tanh=hps["tanh"],
+                                            sigmoid=hps["sigmoid"]
+                                            )
+        self.state_layer_list = []
+        for i in range(num_hidden):
+            seq_list = [torch.nn.Linear(width_hidden, width_hidden, bias=use_bias)]
+            if hps["use_dropout"]:
+                seq_list.append(CustomFixedDropout(width_hidden, hps["dropout_p"]))
+            seq_list.append(get_random_activation(relu=hps["relu"],
+                                                  sin=hps["sin"],
+                                                  tanh=hps["tanh"],
+                                                  sigmoid=hps["sigmoid"]
+                                                  ))
+            self.state_layer_list.append(torch.nn.Sequential(*seq_list))
+        self.state_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+
+        self.a_residual_flag = hps["a_use_res_connection"]
+
+        num_hidden = hps["a_num_hidden"]
+        width_hidden = hps["a_width_hidden"]
+        use_bias = hps["a_use_bias"]
+
+        self.action_in = torch.nn.Linear(action_size, width_hidden, bias=use_bias)
+        self.action_in_act = get_random_activation(relu=hps["a_relu"],
+                                            sin=hps["a_sin"],
+                                            tanh=hps["a_tanh"],
+                                            sigmoid=hps["a_sigmoid"]
+                                            )
+        self.action_layer_list = []
+        for i in range(num_hidden):
+            seq_list = [torch.nn.Linear(width_hidden, width_hidden, bias=use_bias)]
+            if hps["a_use_dropout"]:
+                seq_list.append(CustomFixedDropout(width_hidden, hps["a_dropout_p"]))
+            seq_list.append(get_random_activation(relu=hps["a_relu"],
+                                                  sin=hps["a_sin"],
+                                                  tanh=hps["a_tanh"],
+                                                  sigmoid=hps["a_sigmoid"]
+                                                  ))
+            self.action_layer_list.append(torch.nn.Sequential(*seq_list))
+        self.action_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+
+        self.ns_residual_flag = hps["ns_use_res_connection"]
+
+        num_hidden = hps["ns_num_hidden"]
+        width_hidden = hps["ns_width_hidden"]
+        use_bias = hps["ns_use_bias"]
+
+        self.ns_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias)
+        self.ns_in_act = get_random_activation(relu=hps["ns_relu"],
+                                            sin=hps["ns_sin"],
+                                            tanh=hps["ns_tanh"],
+                                            sigmoid=hps["ns_sigmoid"]
+                                            )
+        self.ns_layer_list = []
+        for i in range(num_hidden):
+            seq_list = [torch.nn.Linear(width_hidden, width_hidden, bias=use_bias)]
+            if hps["ns_use_dropout"]:
+                seq_list.append(CustomFixedDropout(width_hidden, hps["ns_dropout_p"]))
+            seq_list.append(get_random_activation(relu=hps["ns_relu"],
+                                                  sin=hps["ns_sin"],
+                                                  tanh=hps["ns_tanh"],
+                                                  sigmoid=hps["ns_sigmoid"]
+                                                  ))
+            self.ns_layer_list.append(torch.nn.Sequential(*seq_list))
+        self.ns_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+
+    def forward(self, s, a, ns):
+        state_residual = self.state_in(s)
+        s_out = self.state_in_act(state_residual) + self.residual_flag * state_residual
+        for layer in self.state_layer_list:
+            s_out = layer(s_out) + self.residual_flag * state_residual
+        state_out = self.state_out_layer(s_out)
+
+        action_residual = self.action_in(a)
+        a_out = self.action_in_act(action_residual) + self.a_residual_flag * action_residual
+        for layer in self.action_layer_list:
+            a_out = layer(a_out) + self.residual_flag * action_residual
+        action_out = self.action_out_layer(a_out)
+
+        ns_residual = self.ns_in(ns)
+        ns_out = self.ns_in_act(ns_residual) + self.ns_residual_flag * ns_residual
+        for layer in self.ns_layer_list:
+            ns_out = layer(ns_out) + self.ns_residual_flag * ns_residual
+        next_state_out = self.ns_out_layer(ns_out)
+        return state_out + action_out + next_state_out
+
+
 class MomentumEnv(gym.Env):
 
     def __init__(self, hps):
@@ -312,8 +481,10 @@ class VaryMomentumEnv(gym.Env):
         self.NN_list = []
         for i in range(self.obs_size - 2 * self.num_momentum_dims):
             # TODO sample set of NN hyper parameter
-            cfg = self.generate_nn_config()
-            self.NN_list.append(HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=cfg))
+            #cfg = self.generate_nn_config()
+            #self.NN_list.append(HPStepNN(self.obs_size + self.action_dim, output_size=1, hps=cfg))
+            cfg = self.generate_nn_config_s_a_ns()
+            self.NN_list.append(HPStateActionNN(self.obs_size, self.action_dim, hps=cfg))
 
         self.pos_list = []
         self.vel_list = []
@@ -321,8 +492,10 @@ class VaryMomentumEnv(gym.Env):
             dym_type = np.random.choice(["sin", "cos", "x", "y", "rad"])
             self.pos_list.append(PosDym(dym_type))
             self.vel_list.append(VelDym(dym_type, self.action_dim))
-        cfg = self.generate_nn_config()
-        self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=cfg)
+        # cfg = self.generate_nn_config()
+        # self.reward_model = HPStepNN(2 * self.obs_size + self.action_dim, output_size=1, hps=cfg)
+        cfg = self.generate_nn_config_s_a_ns()
+        self.reward_model = HPRewardNN(self.obs_size, self.action_dim, hps=cfg)
         self.eps_steps = 0
 
     def generate_nn_config(self):
@@ -340,6 +513,41 @@ class VaryMomentumEnv(gym.Env):
         config["use_layer_norm"] = False # deprecated
         return config
 
+    def generate_nn_config_s_a_ns(self):
+        config = {}
+        config["num_hidden"] = np.random.randint(0, 2)
+        config["width_hidden"] = np.random.randint(4, 64)
+        config["use_bias"] = np.random.choice([True, False])
+        config["use_res_connection"] = np.random.choice([True, False])
+        config["use_dropout"] = np.random.choice([True, False])
+        config["dropout_p"] = 0.25 * np.random.rand() + 0.75
+        config["relu"] = np.random.choice([True, False])
+        config["sin"] = np.random.choice([True, False])
+        config["tanh"] = np.random.choice([True, False])
+        config["sigmoid"] = np.random.choice([True, False])
+
+        config["a_num_hidden"] = np.random.randint(0, 2)
+        config["a_width_hidden"] = np.random.randint(4, 64)
+        config["a_use_bias"] = np.random.choice([True, False])
+        config["a_use_res_connection"] = np.random.choice([True, False])
+        config["a_use_dropout"] = np.random.choice([True, False])
+        config["a_dropout_p"] = 0.25 * np.random.rand() + 0.75
+        config["a_relu"] = np.random.choice([True, False])
+        config["a_sin"] = np.random.choice([True, False])
+        config["a_tanh"] = np.random.choice([True, False])
+        config["a_sigmoid"] = np.random.choice([True, False])
+
+        config["ns_num_hidden"] = np.random.randint(0, 2)
+        config["ns_width_hidden"] = np.random.randint(4, 64)
+        config["ns_use_bias"] = np.random.choice([True, False])
+        config["ns_use_res_connection"] = np.random.choice([True, False])
+        config["ns_use_dropout"] = np.random.choice([True, False])
+        config["ns_dropout_p"] = 0.25 * np.random.rand() + 0.75
+        config["ns_relu"] = np.random.choice([True, False])
+        config["ns_sin"] = np.random.choice([True, False])
+        config["ns_tanh"] = np.random.choice([True, False])
+        config["ns_sigmoid"] = np.random.choice([True, False])
+        return config
 
     def step(self, action):
         if self.discrete:
@@ -349,10 +557,13 @@ class VaryMomentumEnv(gym.Env):
             action = [action]
         else:
             action = list(action)
-        state_action = torch.tensor(list(self.state) + action).float()
+        #state_action = torch.tensor(list(self.state) + action).float()
+        state_tensor = torch.tensor(list(self.state)).float()
+        action_tensor = torch.tensor(action).float()
         with torch.no_grad():
             for g in self.NN_list:
-                next_state_and_reward.append(g.forward(state_action).item())
+                # next_state_and_reward.append(g.forward(state_action).item())
+                next_state_and_reward.append(g.forward(state_tensor, action_tensor).item())
             for v, p in zip(self.vel_list, self.pos_list):
                 # first update position and velocity
                 v.update(action, p)
@@ -360,7 +571,9 @@ class VaryMomentumEnv(gym.Env):
                 # append to next state
                 next_state_and_reward.append(p.get_position())
                 next_state_and_reward.append(v.get_velocity())
-            next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
+            #next_state_and_reward.append(self.reward_model(torch.tensor(list(self.state) + next_state_and_reward + action).float()))
+            next_state_and_reward.append(
+                self.reward_model(state_tensor, action_tensor, torch.tensor(next_state_and_reward).float()).float())
         self.state = next_state_and_reward[:self.obs_size]
         self.eps_steps += 1
         if self.constant_reward:
