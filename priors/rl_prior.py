@@ -8,7 +8,16 @@ import gymnasium as gym
 import torch
 from gymnasium import spaces
 
-torch.set_printoptions(sci_mode=False, precision=10)
+torch.set_printoptions(sci_mode=False, precision=1)
+
+
+def init_func_generator(init_std):
+    def init_func(m):
+        if isinstance(m, torch.nn.Linear):
+            torch.nn.init.normal_(m.weight, std=init_std)
+            if m.bias is not None:
+                torch.nn.init.normal_(m.bias, std=init_std)
+    return init_func
 
 
 class SinActivation(torch.nn.Module):
@@ -205,8 +214,9 @@ class HPStateActionNN(torch.nn.Module):
         use_bias = hps["use_bias"]
 
         self.residual_flag = hps["use_res_connection"]
+        func = init_func_generator(hps["init_std"])
 
-        self.state_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias)
+        self.state_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias).apply(func)
         self.state_in_act = get_random_activation(relu=hps["relu"],
                                             sin=hps["sin"],
                                             tanh=hps["tanh"],
@@ -222,16 +232,18 @@ class HPStateActionNN(torch.nn.Module):
                                                   tanh=hps["tanh"],
                                                   sigmoid=hps["sigmoid"]
                                                   ))
-            self.state_layer_list.append(torch.nn.Sequential(*seq_list))
-        self.state_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+            self.state_layer_list.append(torch.nn.Sequential(*seq_list).apply(func))
+        self.state_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias).apply(func)
 
         self.residual_flag = hps["a_use_res_connection"]
+
+        func = init_func_generator(hps["a_init_std"])
 
         num_hidden = hps["a_num_hidden"]
         width_hidden = hps["a_width_hidden"]
         use_bias = hps["a_use_bias"]
 
-        self.action_in = torch.nn.Linear(action_size, width_hidden, bias=use_bias)
+        self.action_in = torch.nn.Linear(action_size, width_hidden, bias=use_bias).apply(func)
         self.action_in_act = get_random_activation(relu=hps["a_relu"],
                                             sin=hps["a_sin"],
                                             tanh=hps["a_tanh"],
@@ -247,8 +259,8 @@ class HPStateActionNN(torch.nn.Module):
                                                   tanh=hps["a_tanh"],
                                                   sigmoid=hps["a_sigmoid"]
                                                   ))
-            self.action_layer_list.append(torch.nn.Sequential(*seq_list))
-        self.action_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+            self.action_layer_list.append(torch.nn.Sequential(*seq_list).apply(func))
+        self.action_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias).apply(func)
 
     def forward(self, s, a):
         state_residual = self.state_in(s)
@@ -274,8 +286,9 @@ class HPRewardNN(torch.nn.Module):
         use_bias = hps["use_bias"]
 
         self.residual_flag = hps["use_res_connection"]
+        func = init_func_generator(hps["init_std"])
 
-        self.state_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias)
+        self.state_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias).apply(func)
         self.state_in_act = get_random_activation(relu=hps["relu"],
                                             sin=hps["sin"],
                                             tanh=hps["tanh"],
@@ -291,16 +304,17 @@ class HPRewardNN(torch.nn.Module):
                                                   tanh=hps["tanh"],
                                                   sigmoid=hps["sigmoid"]
                                                   ))
-            self.state_layer_list.append(torch.nn.Sequential(*seq_list))
-        self.state_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+            self.state_layer_list.append(torch.nn.Sequential(*seq_list).apply(func))
+        self.state_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias).apply(func)
 
         self.a_residual_flag = hps["a_use_res_connection"]
+        func = init_func_generator(hps["a_init_std"])
 
         num_hidden = hps["a_num_hidden"]
         width_hidden = hps["a_width_hidden"]
         use_bias = hps["a_use_bias"]
 
-        self.action_in = torch.nn.Linear(action_size, width_hidden, bias=use_bias)
+        self.action_in = torch.nn.Linear(action_size, width_hidden, bias=use_bias).apply(func)
         self.action_in_act = get_random_activation(relu=hps["a_relu"],
                                             sin=hps["a_sin"],
                                             tanh=hps["a_tanh"],
@@ -316,16 +330,18 @@ class HPRewardNN(torch.nn.Module):
                                                   tanh=hps["a_tanh"],
                                                   sigmoid=hps["a_sigmoid"]
                                                   ))
-            self.action_layer_list.append(torch.nn.Sequential(*seq_list))
-        self.action_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+            self.action_layer_list.append(torch.nn.Sequential(*seq_list).apply(func))
+        self.action_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias).apply(func)
 
         self.ns_residual_flag = hps["ns_use_res_connection"]
+
+        func = init_func_generator(hps["ns_init_std"])
 
         num_hidden = hps["ns_num_hidden"]
         width_hidden = hps["ns_width_hidden"]
         use_bias = hps["ns_use_bias"]
 
-        self.ns_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias)
+        self.ns_in = torch.nn.Linear(state_size, width_hidden, bias=use_bias).apply(func)
         self.ns_in_act = get_random_activation(relu=hps["ns_relu"],
                                             sin=hps["ns_sin"],
                                             tanh=hps["ns_tanh"],
@@ -341,8 +357,8 @@ class HPRewardNN(torch.nn.Module):
                                                   tanh=hps["ns_tanh"],
                                                   sigmoid=hps["ns_sigmoid"]
                                                   ))
-            self.ns_layer_list.append(torch.nn.Sequential(*seq_list))
-        self.ns_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias)
+            self.ns_layer_list.append(torch.nn.Sequential(*seq_list).apply(func))
+        self.ns_out_layer = torch.nn.Linear(width_hidden, 1, bias=use_bias).apply(func)
 
     def forward(self, s, a, ns):
         state_residual = self.state_in(s)
@@ -516,7 +532,7 @@ class VaryMomentumEnv(gym.Env):
     def generate_nn_config_s_a_ns(self):
         config = {}
         config["num_hidden"] = np.random.randint(0, 2)
-        config["width_hidden"] = np.random.randint(4, 64)
+        config["width_hidden"] = np.random.randint(4, 8)
         config["use_bias"] = np.random.choice([True, False])
         config["use_res_connection"] = np.random.choice([True, False])
         config["use_dropout"] = np.random.choice([True, False])
@@ -525,9 +541,10 @@ class VaryMomentumEnv(gym.Env):
         config["sin"] = np.random.choice([True, False])
         config["tanh"] = np.random.choice([True, False])
         config["sigmoid"] = np.random.choice([True, False])
+        config["init_std"] = 0.5 * np.random.rand() # TODO find range
 
         config["a_num_hidden"] = np.random.randint(0, 2)
-        config["a_width_hidden"] = np.random.randint(4, 64)
+        config["a_width_hidden"] = np.random.randint(4, 8)
         config["a_use_bias"] = np.random.choice([True, False])
         config["a_use_res_connection"] = np.random.choice([True, False])
         config["a_use_dropout"] = np.random.choice([True, False])
@@ -536,9 +553,11 @@ class VaryMomentumEnv(gym.Env):
         config["a_sin"] = np.random.choice([True, False])
         config["a_tanh"] = np.random.choice([True, False])
         config["a_sigmoid"] = np.random.choice([True, False])
+        config["a_init_std"] = 0.5 * np.random.rand() # TODO find range
+
 
         config["ns_num_hidden"] = np.random.randint(0, 2)
-        config["ns_width_hidden"] = np.random.randint(4, 64)
+        config["ns_width_hidden"] = np.random.randint(4, 8)
         config["ns_use_bias"] = np.random.choice([True, False])
         config["ns_use_res_connection"] = np.random.choice([True, False])
         config["ns_use_dropout"] = np.random.choice([True, False])
@@ -547,6 +566,7 @@ class VaryMomentumEnv(gym.Env):
         config["ns_sin"] = np.random.choice([True, False])
         config["ns_tanh"] = np.random.choice([True, False])
         config["ns_sigmoid"] = np.random.choice([True, False])
+        config["ns_init_std"] = 0.5 * np.random.rand() # TODO find range
         return config
 
     def step(self, action):
@@ -839,25 +859,22 @@ class AdditiveNoiseLayer(torch.nn.Module):
 def generate_bnn(in_size, out_size):
     depth = TNLU(6, 1, 2, to_round=True)
     width = TNLU(130, 5, 4, to_round=True)
-    additive_noise_std = 0.001 * np.random.rand() + 0.0003 #  TNLU(.3, 0.0001, 0.0, to_round=False)
-    init_std = 0.1 * np.random.rand() + 0.09  # TNLU(10., 0.01, 0.0, to_round=False)
+    additive_noise_std = TNLU(.3, 0.0001, 0.0, to_round=False)  # 0.001 * np.random.rand() + 0.0003  #
+    init_std = TNLU(10., 0.01, 0.0, to_round=False)  # 0.1 * np.random.rand() + 0.09  #
 
     def weight_init(m):
         if isinstance(m, torch.nn.Linear):
             torch.nn.init.normal_(m.weight, std=init_std)
-            if m.bias is not None:
-                torch.nn.init.normal_(m.bias, std=init_std)
 
-    use_bias = np.random.choice([True, False])
-    use_res_connection = False # np.random.choice([True, False])
+    use_bias = False # np.random.choice([True, False])
+    use_res_connection = True # np.random.choice([True, False])
     act_funct = np.random.choice(
         [torch.nn.Tanh, torch.nn.LeakyReLU, torch.nn.ReLU, torch.nn.ELU, SinActivation, NoOpActivation])
-    act_funct = np.random.choice([torch.nn.Tanh, SinActivation])
     dropout = np.random.choice([True, False])
-    dropout_p = 0.9 # 0.9 * np.random.beta(np.random.uniform(0.1, 5.0), np.random.uniform(0.1, 5.0))
+    dropout_p = 1 - (0.9 * np.random.beta(np.random.uniform(0.1, 5.0), np.random.uniform(0.1, 5.0)))
     bnn_model = BNN(in_size, out_size, depth, width, use_bias, use_res_connection, act_funct, dropout, dropout_p,
                     additive_noise_std)
-    # bnn_model.apply(weight_init)
+    bnn_model.apply(weight_init)
     return bnn_model
 
 
@@ -964,6 +981,59 @@ def get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters):
     return X, Y
 
 
+def get_bnn_train_seq(seq_len, batch_size, num_features, hyperparameters):
+    # generate input data
+    X = torch.zeros((seq_len, batch_size, num_features))
+    Y = torch.zeros((seq_len, batch_size, num_features))
+    for b in range(batch_size):
+        # sample random state dim and action dim
+        state_dim = np.random.randint(3, 12)
+        action_dim = np.random.randint(1, 4)
+        # sample BNN for state dym
+        state_dynamics_bnn = generate_bnn(state_dim + action_dim, state_dim)
+
+        # sample BNN for reward
+        reward_dynamics_bnn = generate_bnn(2 * state_dim + action_dim, 1)
+
+        obs = torch.rand(state_dim)
+        for i in range(seq_len):
+            action = torch.rand(action_dim)
+            ns = state_dynamics_bnn(torch.cat((obs, action)))
+            r = reward_dynamics_bnn(torch.cat((obs, ns, action)))
+
+            X[i, b, :state_dim] = obs
+            X[i, b, 11:11+action_dim] = action
+
+            Y[i, b, :state_dim] = ns
+            Y[i, b, -1] = r
+
+            obs = ns
+
+            if i % 50 == 0:
+                obs = torch.rand(state_dim)
+
+        # shuffle zero dims
+        state_per_dims = torch.randperm(num_features - 3)
+        X[:, b:b + 1, :num_features - 3] = X[:, b:b + 1, :num_features - 3][:, :, state_per_dims]
+
+        Y[:, b:b + 1, :num_features - 3] = Y[:, b:b + 1, :num_features - 3][:, :, state_per_dims]
+
+        action_per_dim = torch.randperm(3)
+        X[:, b:b + 1, num_features - 3:] = X[:, b:b + 1, num_features - 3:][:, :, action_per_dim]
+
+    # 0 mean 1 variacne Normalize
+    x_means = torch.mean(X, dim=0)
+    x_stds = torch.std(X, dim=0)
+    X = torch.nan_to_num((X - x_means) / x_stds, nan=0)
+
+
+    # 0 mean 1 variacne Normalize
+    y_means = torch.mean(Y, dim=0)
+    y_stds = torch.std(Y, dim=0)
+    Y = torch.nan_to_num((Y - y_means) / y_stds, nan=0)
+    return X, Y
+
+
 @torch.no_grad()
 def get_bnn_batch(
         batch_size,
@@ -977,4 +1047,18 @@ def get_bnn_batch(
     X, Y = get_bnn_train_batch(seq_len, batch_size, num_features, hyperparameters)
     # print(Y.max(dim=0, keepdim=True).values.max(dim=1, keepdim=True).values)
     # print(Y.min(dim=0, keepdim=True).values.min(dim=1, keepdim=True).values)
+    return Batch(x=X, y=Y, target_y=Y)
+
+
+@torch.no_grad()
+def get_bnn_sequantial_batch(
+        batch_size,
+        seq_len,
+        num_features,
+        device=default_device,
+        hyperparameters=None,
+        **kwargs
+):
+
+    X, Y = get_bnn_train_seq(seq_len, batch_size, num_features, hyperparameters)
     return Batch(x=X, y=Y, target_y=Y)

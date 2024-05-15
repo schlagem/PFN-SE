@@ -58,7 +58,7 @@ hps = {"test": False, "env_name": "VaryArchitectureMomentumEnv", "state_offset":
 
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
-                     get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
+                     get_batch_method=priors.rl_prior.get_bnn_sequantial_batch, criterion=criterion,
                      # define the transformer size
                      # emsize=1024, nhead=16, nhid=2048, nlayers=10,
                      emsize=512, nhead=4, nhid=1024, nlayers=6,
@@ -87,4 +87,4 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/explicit_NNs.pt")
+torch.save(trained_model.state_dict(), "trained_models/bnn_stability testing.pt")
