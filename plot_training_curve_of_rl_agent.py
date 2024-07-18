@@ -25,19 +25,23 @@ def plot_agent_trained_on_oswm(env_name):
     train_means = []
     time_steps = None
     train_time_steps = []
-    for seed in range(1, 2):
+    for seed in range(1, 11):
         path = generate_log_dir_path(env_name, seed)
         evals = np.load(os.path.join(path, "evaluations.npz"))
         df = pandas.read_csv(os.path.join(path, "monitor.csv"), header=[1])
         train_means.append(df["r"].tolist())
         train_time_steps.append(list(accumulate(df["l"].tolist())))
         time_steps = evals["timesteps"]
+        if seed == 1:
+            plt.plot(time_steps, evals["results"].mean(axis=1), alpha=0.5, c="tab:orange", label="Best Seed")
+        if seed == 2:
+            plt.plot(time_steps, evals["results"].mean(axis=1), alpha=0.5, c="tab:green", label="Worst Seed")
         means.append(evals["results"].mean(axis=1))
 
     means = np.array(means)
     # train_means = np.array(train_means)
 
-    plt.plot(time_steps, means.mean(axis=0), label="Mean Test reward")
+    plt.plot(time_steps, means.mean(axis=0), label="Mean Test reward", color='tab:blue')
     plt.fill_between(time_steps,
                      means.mean(axis=0) - means.std(axis=0),
                      means.mean(axis=0) + means.std(axis=0),
@@ -57,7 +61,8 @@ def plot_agent_trained_on_oswm(env_name):
     plt.title("Training Curve of RL Agent for " + env_name)
     plt.ylabel("Episode reward")
     plt.xlabel("Time steps")
-    plt.show()
+    print(generate_log_dir_path(env_name, 1))
+    plt.savefig(os.path.join(os.path.dirname(generate_log_dir_path(env_name, 1)), f"{env_name}_rl_train.png"), dpi=300)
 
 
 if __name__ == '__main__':
