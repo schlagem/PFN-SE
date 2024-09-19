@@ -12,10 +12,12 @@ from stable_baselines3.common.logger import configure
 import simple_env
 
 
-def generate_log_dir_path(env_name, seed):
+def generate_log_dir_path(env_name, seed, additional_path=None):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     # Make directory for env if not existing
     dir_path = os.path.join(dir_path, "log")
+    if additional_path:
+        dir_path = os.path.join(dir_path, additional_path)
     env_path = os.path.join(dir_path, env_name)
     seed_path = os.path.join(env_path, "seed_" + str(seed))
     return seed_path
