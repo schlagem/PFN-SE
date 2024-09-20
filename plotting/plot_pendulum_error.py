@@ -5,7 +5,7 @@ import json
 from matplotlib import colormaps
 
 
-with open('plotpendulumerror.json') as f:
+with open('./data/plotpendulumerror.json') as f:
     data = json.load(f)
 
 cmap = matplotlib.cm.get_cmap("plasma")
@@ -36,7 +36,7 @@ rad_pos_error = np.where(rad_pos_error < -1, 0, rad_pos_error)
 norm = matplotlib.colors.Normalize(vmin=min(-np.array(rad_pos_error)), vmax=max(-np.array(rad_pos_error)))
 plt.bar(rad_pos, -np.array(rad_pos_error), bottom=.5, width=0.05, color=cmap(norm(-np.array(rad_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('pendulum_context_random.json') as f:
+with open('./data/pendulum_context_random.json') as f:
     context = json.load(f)
 
 context_pos = []
@@ -63,7 +63,7 @@ plt.ylabel("Error / Frequency")
 
 plt.legend()
 # plt.savefig("MountainCar_random_context_plot.png", dpi=500)
-plt.savefig("Pendulum_context_random_plot.png", dpi=500)
+plt.savefig("../plots/Pendulum_context_random_plot.png", dpi=500)
 plt.figure(figsize=(10,6))
 
 #plt.cla()
@@ -79,11 +79,11 @@ plt.stairs(counts/1000, bins, alpha=.3, fill=True, label="Distribution of Test s
 plt.ylabel("Error")
 plt.xlabel("Angular velocity")
 plt.legend()
-plt.savefig("Pendulum_vel_context_random_plot.png", dpi=500)
+plt.savefig("../plots/Pendulum_vel_context_random_plot.png", dpi=500)
 
 # EXPERT CONTEXT STARTS HERE
 
-with open('plotpendulumerror_expert.json') as f:
+with open('./data/plotpendulumerror_expert.json') as f:
     data = json.load(f)
 
 cmap = matplotlib.cm.get_cmap("plasma")
@@ -113,7 +113,7 @@ rad_pos_error = np.where(rad_pos_error < -1, 0, rad_pos_error)
 norm = matplotlib.colors.Normalize(vmin=min(-np.array(rad_pos_error)), vmax=max(-np.array(rad_pos_error)))
 plt.bar(rad_pos, -np.array(rad_pos_error), bottom=.5, width=0.05, color=cmap(norm(-np.array(rad_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('pendulum_context_expert.json') as f:
+with open('./data/pendulum_context_expert.json') as f:
     context = json.load(f)
 
 context_pos = []
@@ -140,7 +140,7 @@ plt.ylabel("Error / Frequency")
 
 plt.legend()
 # plt.savefig("MountainCar_random_context_plot.png", dpi=500)
-plt.savefig("Pendulum_context_expert_plot.png", dpi=500)
+plt.savefig("../plots/Pendulum_context_expert_plot.png", dpi=500)
 plt.figure(figsize=(10,6))
 
 #plt.cla()
@@ -156,13 +156,13 @@ plt.stairs(counts/1000, bins, alpha=.3, fill=True, label="Distribution of Test s
 plt.ylabel("Error")
 plt.xlabel("Angular velocity")
 plt.legend()
-plt.savefig("Pendulum_context_vel_expert_plot.png", dpi=500)
+plt.savefig("../plots/Pendulum_context_vel_expert_plot.png", dpi=500)
 
 
 
 # MIXTURE CONTEXT STARTS HERE
 
-with open('plotpendulumerror_mixture.json') as f:
+with open('./data/plotpendulumerror_mixture.json') as f:
     data = json.load(f)
 
 cmap = matplotlib.cm.get_cmap("plasma")
@@ -192,7 +192,7 @@ rad_pos_error = np.where(rad_pos_error < -1, 0, rad_pos_error)
 norm = matplotlib.colors.Normalize(vmin=min(-np.array(rad_pos_error)), vmax=max(-np.array(rad_pos_error)))
 plt.bar(rad_pos, -np.array(rad_pos_error), bottom=.5, width=0.05, color=cmap(norm(-np.array(rad_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('pendulum_context_mixture.json') as f:
+with open('./data/pendulum_context_mixture.json') as f:
     context = json.load(f)
 
 context_pos = []
@@ -218,7 +218,7 @@ plt.xlabel("Angle of Pendulum")
 plt.ylabel("Error / Frequency")
 
 plt.legend()
-plt.savefig("Pendulum_context_mixture_plot.png", dpi=500)
+plt.savefig("../plots/Pendulum_context_mixture_plot.png", dpi=500)
 plt.show()
 plt.figure(figsize=(10,6))
 
@@ -235,4 +235,4 @@ plt.stairs(counts/1000, bins, alpha=.3, fill=True, label="Distribution of Test s
 plt.ylabel("Error")
 plt.xlabel("Angular velocity")
 plt.legend()
-plt.savefig("Pendulum_context_vel_mixture_plot.png", dpi=500)
+plt.savefig("../plots/Pendulum_context_vel_mixture_plot.png", dpi=500)
