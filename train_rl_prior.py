@@ -53,7 +53,7 @@ max_dataset_size = 1001
 epochs = 50
 
 # PRIOR hps
-hps = {"env_name": "NNEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
+hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
        "state_offset": 3.2802608490289904, "state_scale": 18.147661409701062, "tanh": True, "test": False,
        "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True,
        "width_hidden": 16, "no_norm": False, "max_num_state": 11, "max_num_action": 3}
