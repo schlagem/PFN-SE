@@ -71,4 +71,4 @@ train_result = train(get_batch_method=priors.rl_prior.get_batch, criterion=crite
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/NNPriorOnly.pt")
+torch.save(trained_model.state_dict(), "trained_models/cpkt.pt")
