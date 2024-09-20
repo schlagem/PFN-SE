@@ -313,7 +313,7 @@ class StateActionEncoderCat(nn.Module):
             x = torch.nan_to_num(x, nan=0.0)
         state_enc = self.state_encoder(x[:, :, :11])
         action_enc = self.action_encoder(x[:, :, 11:])
-        zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize//2), 0.)
+        zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize//2), 0., device="cuda:0")
         x = torch.cat((state_enc, action_enc, zero_pad), dim=2)
         return x
 
@@ -339,7 +339,7 @@ class NextStateRewardEncoderCat(nn.Module):
             x = torch.nan_to_num(x, nan=0.0)
         state_enc = self.state_encoder(x[:, :, :11])
         r_enc = self.r_encoder(x[:, :, 13:])
-        zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize//2), 0.)
+        zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize//2), 0., device="cuda:0")
         x = torch.cat((zero_pad, state_enc, r_enc), dim=2)
         return x
 

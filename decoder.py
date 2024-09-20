@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def cat_encoder_generator_generator(hps, target):
     activation_dict = {"relu": torch.nn.ReLU,
@@ -63,10 +63,10 @@ def cat_encoder_generator_generator(hps, target):
                 out = layer(out) + self.residual_flag * residual
             out_2 = self.out_lin_2(out)
             if self.target:
-                zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize // 2), 0.)
+                zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize // 2), 0., device=device)
                 return torch.cat((zero_pad, out_1, out_2), dim=2)
             else:
-                zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize // 2), 0.)
+                zero_pad = torch.full((x.shape[0], x.shape[1], self.emsize // 2), 0., device=device)
                 return torch.cat((out_1, out_2, zero_pad), dim=2)
 
         def __setstate__(self, state):
@@ -203,7 +203,7 @@ def cat_decoder_generator_generator(hps):
             out_2 = self.out_lin_2(out)
 
             zero_shape = (x.shape[0], x.shape[1], 2)
-            zero_padding = torch.full(zero_shape, 0.)
+            zero_padding = torch.full(zero_shape, 0., device=device)
             return torch.cat((out_1, zero_padding, out_2), dim=2)
 
     return NNCatDecClass
