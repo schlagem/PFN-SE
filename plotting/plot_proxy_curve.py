@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+import sys
+sys.path.append("..")
 from train_agent_on_pfn import generate_log_dir_path
 import os
 import json

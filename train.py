@@ -9,14 +9,10 @@ from tqdm import tqdm
 
 import torch
 
-import bar_distribution
 import utils
 import priors.prior
 from transformer import TransformerModel
-from bar_distribution import (
-    BarDistribution,
-    FullSupportBarDistribution,
-)
+
 from utils import (
     get_cosine_schedule_with_warmup,
     get_openai_lr,
@@ -35,7 +31,6 @@ class Losses:
     mse = nn.MSELoss(reduction="none")
     ce = nn.CrossEntropyLoss(reduction="none")
     bce = nn.BCEWithLogitsLoss(reduction="none")
-    get_BarDistribution = BarDistribution
 
 
 def build_model(
@@ -65,12 +60,7 @@ def build_model(
     decoder_once_dict = {}
 
     # For survival models an extra column is supported to encode the censoring variable
-    survival_extra_column = (
-        1
-        if bar_distribution.HalfSupportBarDistributionForSurvival.__name__
-        == criterion.__class__.__name__
-        else 0
-    )
+    survival_extra_column = 0
 
     if style_encoder_generator is not None:
         style_def = test_batch.style
@@ -201,9 +191,7 @@ def train(
         n_out = 2
     # We use a string-based comparison in addition to a class-based comparison
     # We do this because `reload` changes class hierarchies, making `isinstance` calls wrong when editing the classes
-    elif ("BarDistribution" in criterion.__class__.__name__) or isinstance(
-        criterion, BarDistribution
-    ):
+    elif ("BarDistribution" in criterion.__class__.__name__):
         n_out = criterion.num_bars
     elif isinstance(criterion, nn.CrossEntropyLoss):
         n_out = num_classes
@@ -438,7 +426,7 @@ def train(
                                 ),
                             }
                         )
-                    elif isinstance(criterion, BarDistribution):
+                    elif isinstance(criterion):
                         # Nan Targets are removed from the loss (Loss is set to 0) which changes loss scaling
                         losses = criterion(output, targets)
                     else:
