@@ -1,7 +1,8 @@
-import matplotlib.ticker
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+import sys
+sys.path.append("..")
 from train_agent_on_pfn import generate_log_dir_path
 import os
 import json
@@ -33,6 +34,7 @@ worst_seed = {
 }
 
 plt.rcParams.update({'font.size': 15})
+
 
 def read_json(path):
     rewards = []
@@ -82,16 +84,7 @@ def plot_agent_trained_on_oswm(env_name):
 
     if env_name == "GridWorld":
         plt.ylim([-15, 6])
-    #plt.gca().yaxis.set(major_formatter=matplotlib.ticker.ScalarFormatter())
-    #for m, t, in zip(train_means, train_time_steps):
-    #    plt.plot(t, m)
-    """
-    plt.plot(train_time_steps, train_means.mean(axis=0), label="Mean Test reward")
-    plt.fill_between(train_time_steps,
-                     train_means.mean(axis=0) - train_means.std(axis=0),
-                     train_means.mean(axis=0) + train_means.std(axis=0),
-                     color="tab:orange", alpha=0.15)
-    """
+
     if env_name in solved_threshhold:
         plt.plot(time_steps, np.full_like(time_steps, solved_threshhold[env_name]), label="Solved Threshold", alpha=1.,
              color="red", linestyle="dotted")
