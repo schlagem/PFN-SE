@@ -20,6 +20,7 @@ class GridWorld(gym.Env):
         self.state = None
         self.episode_steps = 0
         self.action_space = gym.spaces.Discrete(4)
+        self.observation_space = gym.spaces.MultiDiscrete(np.array([8, 8]))
 
     def step(self, a):
         step = [[1, 0], [-1, 0], [0, 1], [0, -1]][a]
@@ -28,14 +29,14 @@ class GridWorld(gym.Env):
         re = world_reward - 1 + 0.01*(self.state[0])
         done = world_reward == -10 or self.episode_steps > 25 or world_reward == 10
         self.episode_steps += 1
-        return self.state, re, done, False, None
+        return self.state, re, done, False, {}
 
     def reset(self, **kwargs):
         # TODO reset based on real environment
         self.episode_steps = 0
         y_pos = random.randint(1, 6)
         self.state = np.array([1, y_pos])
-        return self.state, None
+        return self.state, {}
 
     def render(self):
         print("------------")

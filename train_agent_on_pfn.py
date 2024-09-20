@@ -10,6 +10,7 @@ from stable_baselines3.common.monitor import Monitor
 import os
 from stable_baselines3.common.logger import configure
 import simple_env
+import grid_world
 
 
 def generate_log_dir_path(env_name, seed, additional_path=None):
@@ -27,15 +28,17 @@ def train_policy_on_se(env_name, time_steps, seed):
     # Parallel environments
     env = ArtificialEnv(env_name)
     # env = gym.make(env_name)
-    path = generate_log_dir_path(env_name, seed)
+    path = generate_log_dir_path(env_name, seed, additional_path="nnenv")
     monitor_env = Monitor(env, filename=path)
-
+    print(path)
 
     model = PPO("MlpPolicy", monitor_env, verbose=0, seed=seed, n_steps=128, stats_window_size=5)
 
     # Separate evaluation env
     if env_name == "SimpleEnv":
         eval_env = simple_env.SimpleEnv()
+    elif env_name == "GridWorld":
+        eval_env = grid_world.GridWorld()
     else:
         eval_env = gym.make(env_name)
     monitor_eval_env = Monitor(eval_env, allow_early_resets=True)
@@ -50,18 +53,30 @@ def train_policy_on_se(env_name, time_steps, seed):
 
     model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=True)
     print(monitor_env.get_episode_rewards())
+    model.save(os.path.join(path, "exp_seed_1.pt"))
     return model
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Training policy on One-Shot World Model')
-    parser.add_argument("--env", type=str, required=True)
+    parser.add_argument("--env", type=str, default="all")
     parser.add_argument("--timestep", type=int, default=50000)
-    parser.add_argument("--seed", type=int)
+    parser.add_argument("--seed", type=int, default=-1)
 
     args = parser.parse_args()
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    train_policy_on_se(env_name=args.env, time_steps=args.timestep, seed=args.seed)
+    if args.env == "all":
+        env_list = ["CartPole-v0", "SimpleEnv", "Reacher-v4", "Pendulum-v1", "MountainCar-v0", "GridWorld"]
+    else:
+        env_list = [args.env]
+
+    if args.seed == -1:
+        seed_list = [1, 2, 3]
+    else:
+        seed_list = [args.seed]
+    for e in env_list:
+        for s in seed_list:
+            random.seed(s)
+            np.random.seed(s)
+            torch.manual_seed(s)
+            train_policy_on_se(env_name=e, time_steps=args.timestep, seed=s)
 

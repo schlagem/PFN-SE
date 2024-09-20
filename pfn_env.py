@@ -3,7 +3,7 @@ import time
 
 import gymnasium as gym
 
-
+import os
 import torch
 import torch.nn as nn
 import numpy as np
@@ -13,6 +13,7 @@ import grid_world
 from train import build_model
 import encoders
 import simple_env
+from decoder import *
 
 # if GPU is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,17 +51,26 @@ def get_done_func(env_name):
         def mountain_car_reset(state, steps):
             return state[0] >= 0.5 or steps > 199
         return mountain_car_reset
+    elif env_name == "GridWorld":
+        def grid_world_reset(state, steps):
+            d1 = state[0] <= 0 or state[1] <= 0
+            d2 = state[0] >= 6 or state[1] >= 7
+            return d1 or d2 or steps > 25
+        return grid_world_reset
     else:
         raise NotImplementedError
 
 
 class ArtificialEnv(gym.Env):
 
-    def __init__(self, env_name, render_mode=None):
-
+    def __init__(self, env_name, render_mode=None, mixure_context=False, p_expert_context=False):
+        self.round = False
         # Create environment to reset and create train samples
         if env_name == "SimpleEnv":
             self.real_env = simple_env.SimpleEnv()
+        elif env_name == "GridWorld":
+            self.real_env = grid_world.GridWorld()
+            self.round = True
         else:
             self.real_env = gym.make(env_name)
 
@@ -77,13 +87,41 @@ class ArtificialEnv(gym.Env):
         self.train_x = torch.full((seq_len, batch_size, num_features), 0.)
         self.train_y = torch.full((seq_len, batch_size, num_features), float(0.))
         observation, info = self.real_env.reset()
+        if mixure_context or p_expert_context:
+            if env_name == "CartPole-v0":
+                print("val_transitions/expert_policies/PPO_" + "CartPole-v1" + ".zip")
+                policy = PPO.load("val_transitions/expert_policies/PPO_" + "CartPole-v1")
+            else:
+                policy = PPO.load("val_transitions/expert_policies/PPO_" + env_name + ".zip")
         for b in range(batch_size):
             ep = 0
+            ep_step = 0
             steps_after_done = 0
             for i in range(1001):
-                action = self.real_env.action_space.sample()
+                if mixure_context:
+                    if i < seq_len // 3:
+                        action, _ = policy.predict(observation)
+                    elif i < 2 * (seq_len // 3):
+                        eps = np.random.rand()
+                        if eps < 0.5:
+                            action = self.real_env.action_space.sample()
+                        else:
+                            action, _ = policy.predict(observation)
+                    else:
+                        action = self.real_env.action_space.sample()
+                elif p_expert_context:
+                    eps = np.random.rand()
+                    if eps < 0.5:
+                        action = self.real_env.action_space.sample()
+                    else:
+                        action, _ = policy.predict(observation)
+                else:
+                    action = self.real_env.action_space.sample()
+
                 if isinstance(action, int) or isinstance(action, np.int64):
                     action_array = np.array([action])  # TODO detect action type
+                elif action.shape == ():
+                    action_array = np.expand_dims(action, 0)
                 else:
                     action_array = action
                 act = torch.full((3,), 0.)
@@ -100,18 +138,21 @@ class ArtificialEnv(gym.Env):
                 # batch_features = observation.shape[0] + 1  # action.shape[0]
                 self.train_x[i, b] = obs_action_pair # * num_features / batch_features
                 observation, reward, terminated, truncated, info = self.real_env.step(action)
+                ep_step += 1
 
                 obs = torch.full((num_features - 1,), 0.)
                 obs[:observation.shape[0]] = torch.tensor(observation)
                 # obs[-1] = float(terminated or truncated) # TODO if possible for all env
                 next_state_reward_pair = torch.hstack((obs, torch.tensor(reward)))
                 self.train_y[i, b] = next_state_reward_pair
-                if terminated or truncated or i % 50 == 0:
+                if terminated or truncated or ep_step >= 50:
                     steps_after_done += 1
-                    if steps_after_done >= 0:
+                    sad = 5 if env_name == "CartPole-v0" else 0
+                    if steps_after_done >= sad:
                         steps_after_done = 0
                         observation, info = self.real_env.reset()
                         ep += 1
+                        ep_step = 0
                         print(f"Episode {ep}")
 
         self.train_y = self.train_y.to(device)
@@ -129,22 +170,43 @@ class ArtificialEnv(gym.Env):
         # building Transformer model and loading weights
         criterion = nn.MSELoss(reduction='none')
         # TODO test batch?
+        encoder_decoder_hps = {"decoder_activation": "sigmoid", "decoder_depth": 2, "decoder_res_connection": True,
+                               "decoder_type": "cat", "decoder_use_bias": False, "decoder_width": 64,
+                               "encoder_activation": "gelu", "encoder_depth": 3,
+                               "encoder_res_connection": True, "encoder_type": "cat", "encoder_use_bias": True,
+                               "encoder_width": 512}
+
+        if encoder_decoder_hps["encoder_type"] == "mlp":
+            gen_x = mlp_encoder_generator_generator(encoder_decoder_hps)
+            gen_y = gen_x
+        elif encoder_decoder_hps["encoder_type"] == "cat":
+            gen_x = cat_encoder_generator_generator(encoder_decoder_hps, target=False)
+            gen_y = cat_encoder_generator_generator(encoder_decoder_hps, target=True)
+
+        if encoder_decoder_hps["encoder_type"] == "mlp":
+            dec_model = mlp_decoder_generator_generator(encoder_decoder_hps)
+        elif encoder_decoder_hps["decoder_type"] == "cat":
+            dec_model = cat_decoder_generator_generator(encoder_decoder_hps)
+
+        decoder_dict = {"standard": (dec_model, 14)}
+
         hps = {'test': True}
         self.pfn = build_model(
             criterion=criterion,
-            encoder_generator=encoders.Linear,
+            encoder_generator=gen_x,
             test_batch=None,
             n_out=14,
-            emsize=512, nhead=4, nhid=1024, nlayers=6,
+            emsize=512, nhead=8, nhid=1024, nlayers=6,
             seq_len=1001,
-            y_encoder_generator=encoders.Linear,
-            decoder_dict={},
+            y_encoder_generator=gen_y,
+            decoder_dict=decoder_dict,
             extra_prior_kwargs_dict={'num_features': num_features, 'hyperparameters': hps},
         ).to(device)
         print(
             f"Using a Transformer with {sum(p.numel() for p in self.pfn.parameters()) / 1000 / 1000:.{2}f} M parameters"
         )
-        self.pfn.load_state_dict(torch.load("saved_models/first_incumbent.pt"))
+        #self.pfn.load_state_dict(torch.load("saved_models/exp_seed_1.pt"))
+        self.pfn.load_state_dict(torch.load("saved_models/NNPriorOnly.pt"))
         self.pfn.eval()
 
         self.state = None
@@ -174,6 +236,8 @@ class ArtificialEnv(gym.Env):
             ns = torch.mean(ns, dim=0)  # TODO discrete steps
 
         self.state = ns[:self.state.shape[0]].cpu().numpy()
+        if self.round:
+            self.state = self.state.round()
         re = torch.nan_to_num(ns[-1], nan=-1)  # TODO if this accurate enough
 
         done = self.done_func(self.state, self.episode_steps)
