@@ -5,7 +5,7 @@ import json
 from matplotlib import colormaps
 
 
-with open('plotcartpoleerror.json') as f:
+with open('./data/plotcartpoleerror.json') as f:
     data = json.load(f)
 
 cmap = matplotlib.cm.get_cmap("plasma")
@@ -35,7 +35,7 @@ rad_pos = np.where(rad_pos > np.pi, -2 * np.pi + rad_pos, rad_pos)
 norm = matplotlib.colors.Normalize(vmin=min(-np.array(rad_pos_error)), vmax=max(-np.array(rad_pos_error)))
 plt.bar(rad_pos, -np.array(rad_pos_error), bottom=.5, width=0.002, color=cmap(norm(-np.array(rad_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('cartpole_context_random.json') as f:
+with open('./data/cartpole_context_random.json') as f:
     context = json.load(f)
 
 context = np.array(context).reshape(-1, 14)
@@ -61,7 +61,7 @@ plt.ylabel("Error / Frequency")
 
 plt.legend()
 plt.ylim([0, 1.0])
-plt.savefig("Cartpole_random_context_plot.png", dpi=500)
+plt.savefig("../plots/Cartpole_random_context_plot.png", dpi=500)
 plt.figure(figsize=(10,6))
 
 plt.cla()
@@ -78,14 +78,14 @@ plt.ylabel("Error")
 plt.xlabel("Angular velocity")
 plt.legend()
 plt.ylim([0, 1.0])
-plt.savefig("Cartpole_vel_random_context_plot.png", dpi=500)
+plt.savefig("../plots/Cartpole_vel_random_context_plot.png", dpi=500)
 
 plt.cla()
 plt.clf()
 
 
 # EXPERT CONTEXT STARTS HERE
-with open('plotcartpoleerror_expert.json') as f:
+with open('./data/plotcartpoleerror_expert.json') as f:
     data = json.load(f)
 
 cmap = matplotlib.cm.get_cmap("plasma")
@@ -115,7 +115,7 @@ rad_pos = np.where(rad_pos > np.pi, -2 * np.pi + rad_pos, rad_pos)
 norm = matplotlib.colors.Normalize(vmin=min(-np.array(rad_pos_error)), vmax=max(-np.array(rad_pos_error)))
 plt.bar(rad_pos, -np.array(rad_pos_error), bottom=.5, width=0.002, color=cmap(norm(-np.array(rad_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('cartpole_context_expert.json') as f:
+with open('./data/cartpole_context_expert.json') as f:
     context = json.load(f)
 
 context = np.array(context).reshape(-1, 14)
@@ -142,7 +142,7 @@ plt.ylabel("Error / Frequency")
 plt.legend()
 # plt.savefig("MountainCar_random_context_plot.png", dpi=500)
 plt.ylim([0, 1.0])
-plt.savefig("Cartpole_expert_context_plot.png", dpi=500)
+plt.savefig("../plots/Cartpole_expert_context_plot.png", dpi=500)
 plt.figure(figsize=(10,6))
 
 #plt.cla()
@@ -159,7 +159,7 @@ plt.ylabel("Error")
 plt.xlabel("Angular velocity")
 plt.legend()
 plt.ylim([0, 1.0])
-plt.savefig("Cartpole_vel_expert_context_plot.png", dpi=500)
+plt.savefig("../plots/Cartpole_vel_expert_context_plot.png", dpi=500)
 
 
 # MIXTURe CONTEXT STARTS HERE
@@ -193,7 +193,7 @@ rad_pos = np.where(rad_pos > np.pi, -2 * np.pi + rad_pos, rad_pos)
 norm = matplotlib.colors.Normalize(vmin=min(-np.array(rad_pos_error)), vmax=max(-np.array(rad_pos_error)))
 plt.bar(rad_pos, -np.array(rad_pos_error), bottom=.5, width=0.002, color=cmap(norm(-np.array(rad_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('cartpole_context_mixture.json') as f:
+with open('./data/cartpole_context_mixture.json') as f:
     context = json.load(f)
 
 context = np.array(context).reshape(-1, 14)
@@ -220,7 +220,7 @@ plt.ylabel("Error / Frequency")
 plt.legend()
 # plt.savefig("MountainCar_random_context_plot.png", dpi=500)
 plt.ylim([0, 1.0])
-plt.savefig("Cartpole_mixture_context_plot.png", dpi=500)
+plt.savefig("../plots/Cartpole_mixture_context_plot.png", dpi=500)
 plt.figure(figsize=(10,6))
 #plt.cla()
 #plt.clf()
@@ -236,4 +236,4 @@ plt.ylabel("Error")
 plt.xlabel("Angular velocity")
 plt.legend()
 plt.ylim([0, 1.0])
-plt.savefig("Cartpole_vel_mixture_context_plot.png", dpi=500)
+plt.savefig("../plots/Cartpole_vel_mixture_context_plot.png", dpi=500)
