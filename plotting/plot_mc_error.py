@@ -5,7 +5,7 @@ import json
 from matplotlib import colormaps
 
 matplotlib.rcParams.update({'font.size': 14})
-with open('plotmcerror.json') as f:
+with open('./data/plotmcerror.json') as f:
     data = json.load(f)
 
 cmap = matplotlib.cm.get_cmap("plasma")
@@ -36,7 +36,7 @@ norm = matplotlib.colors.Normalize(vmin=min(-np.array(x_pos_error)), vmax=max(-n
 plt.bar(x_pos, -np.array(x_pos_error), bottom=np.sin(3 * np.array(x_pos)) * 0.45 + 0.55, width=0.01,
         color=cmap(norm(-np.array(x_pos_error))), label="Directional Error of X-Position prediction")
 
-with open('mc_context_random.json') as f:
+with open('./data/mc_context_random.json') as f:
     context = json.load(f)
 
 context_pos = []
@@ -54,14 +54,14 @@ plt.xlabel("X position of Car")
 plt.ylabel("Y postion / Error / Frequency")
 
 plt.legend()
-plt.savefig("MountainCar_random_context_plot.png", dpi=500)
+plt.savefig("../plots/MountainCar_random_context_plot.png", dpi=500)
 #plt.show()
 plt.cla()
 plt.clf()
 
 # Expert Starts here
 
-with open('plotmcerror_expert.json') as f:
+with open('./data/plotmcerror_expert.json') as f:
     data = json.load(f)
 print(data.keys())
 
@@ -96,7 +96,7 @@ plt.bar(x_pos, -np.array(x_pos_error), bottom=np.sin(3 * np.array(x_pos)) * 0.45
         color=cmap(norm(-np.array(x_pos_error))), label="Directional Error of X-Position prediction")
 
 
-with open('mc_context_expert.json') as f:
+with open('./data/mc_context_expert.json') as f:
     context = json.load(f)
 
 context_pos = []
@@ -113,14 +113,14 @@ plt.title("Error on MountainCar-v0 relative to position with Expert context")
 plt.xlabel("X position of Car")
 plt.ylabel("Y postion / Error / Frequency")
 plt.legend()
-plt.savefig("MountainCar_expert_context_plot.png", dpi=500)
+plt.savefig("../plots/MountainCar_expert_context_plot.png", dpi=500)
 #plt.show()
 
 
 
 # Mixture Starts here
 
-with open('plotmcerror_mixture.json') as f:
+with open('./data/plotmcerror_mixture.json') as f:
     data = json.load(f)
 print(data.keys())
 
@@ -155,7 +155,7 @@ plt.bar(x_pos, -np.array(x_pos_error), bottom=np.sin(3 * np.array(x_pos)) * 0.45
         color=cmap(norm(-np.array(x_pos_error))), label="Directional Error of X-Position prediction")
 
 
-with open('mc_context_mixture.json') as f:
+with open('./data/mc_context_mixture.json') as f:
     context = json.load(f)
 
 context_pos = []
@@ -173,5 +173,5 @@ plt.title("Error on MountainCar-v0 relative to position with Mixture context")
 plt.xlabel("X position of Car")
 plt.ylabel("Y postion / Error / Frequency")
 plt.legend()
-plt.savefig("MountainCar_mixture_context_plot.png", dpi=500)
+plt.savefig("../plots/MountainCar_mixture_context_plot.png", dpi=500)
 # plt.show()
