@@ -20,7 +20,6 @@ class SimpleEnv(gym.Env):
         return self.state, re, done, False, {}
 
     def reset(self, **kwargs):
-        # TODO reset based on real environment
         self.episode_steps = 0
         self.state = 10 * (np.random.rand(1) - .5)
         return self.state, {}

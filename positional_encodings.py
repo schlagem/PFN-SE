@@ -4,11 +4,6 @@ import torch
 from torch import nn
 
 
-# Protocol for positonal encodings.
-# __init__(d_model, max_len=..[, more optionals])
-# forward(x: (seq_len, bs, d_model)) -> Tensor of shape (*x.shape[:2],d_model) containing pos. embeddings
-
-
 class NoPositionalEncoding(nn.Module):
     def __init__(self, d_model, max_len=None):
         super(NoPositionalEncoding, self).__init__()
