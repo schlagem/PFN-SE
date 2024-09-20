@@ -46,7 +46,7 @@ class GridWorld(gym.Env):
             for k in range(len(self.world[0])):
                 if np.array_equal(self.state, [k, i]):
                     string += "@"
-                elif self.world[i][k] ==  -10:
+                elif self.world[i][k] == -10:
                     string += "X"
                 elif self.world[i][k] == 10:
                     string += "$"

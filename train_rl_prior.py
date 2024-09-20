@@ -16,9 +16,9 @@ from decoder import *
 import warnings
 warnings.filterwarnings('ignore', category=UserWarning)
 
-#random.seed(0)
-#np.random.seed(0)
-#torch.manual_seed(0)
+random.seed(1)
+np.random.seed(1)
+torch.manual_seed(1)
 
 # maximum Dimension of observations + max dimension of action
 num_features = 14
@@ -52,13 +52,15 @@ min_train_len = 500
 max_dataset_size = 1001
 epochs = 50
 
-# Prior HPS
-hps = {"test": False, "env_name": "VaryArchitectureMomentumEnv", "state_offset": 4.494979105877573,
-       "state_scale": 10.82035697565969}
+# PRIOR hps
+hps = {"env_name": "MomentumEnv", "num_hidden": 1, "relu": False, "sigmoid": False, "sin": True,
+       "state_offset": 3.2802608490289904, "state_scale": 18.147661409701062, "tanh": True, "test": False,
+       "use_bias": False, "use_dropout": False, "use_layer_norm": True, "use_res_connection": True,
+       "width_hidden": 16, "no_norm": False, "max_num_state": 11, "max_num_action": 3}
 
 train_result = train(# the prior is the key. It defines what we train on. You should hand over a dataloader here
                      # you can convert a `get_batch` method to a dataloader with `priors.utils.get_batch_to_dataloader`
-                     get_batch_method=priors.rl_prior.get_bnn_sequantial_batch, criterion=criterion,
+                     get_batch_method=priors.rl_prior.get_batch, criterion=criterion,
                      # define the transformer size
                      # emsize=1024, nhead=16, nhid=2048, nlayers=10,
                      emsize=512, nhead=4, nhid=1024, nlayers=6,
@@ -87,4 +89,4 @@ train_result = train(# the prior is the key. It defines what we train on. You sh
 final_mean_loss, final_per_datasetsize_losses, trained_model, dataloader = train_result
 
 
-torch.save(trained_model.state_dict(), "trained_models/bnn_stability testing.pt")
+torch.save(trained_model.state_dict(), "trained_models/NNPriorOnly.pt")

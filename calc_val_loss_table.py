@@ -85,7 +85,6 @@ def gather_context(length, batch_size, feature_size, env_name, action_gather_typ
             elif action_gather_type == "Random Policy":
                 with torch.no_grad():
                     if type(env.action_space) is gym.spaces.Discrete:  # discrete case
-                        # TODO shoudl this be torch.long
                         action = torch.argmax(policy(torch.tensor(observation, dtype=torch.float)))
                     else:  # Continous case
                         action = policy(torch.tensor(observation, dtype=torch.float))
@@ -289,7 +288,6 @@ def get_model():
 if __name__ == '__main__':
     results = val_loss_table(get_model())
     print(results)
-    # TODO change save name to show checkpoint name
-    with open('val_transitions/scores/exp_seed_1_pexpert.json', 'w') as fp:
+    with open('val_transitions/scores/validation_scores.json', 'w') as fp:
         json.dump(results, fp, indent=4)
 

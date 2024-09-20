@@ -208,5 +208,6 @@ def cat_decoder_generator_generator(hps):
 
     return NNCatDecClass
 
+
 if __name__ == '__main__':
     print("nothin to see")

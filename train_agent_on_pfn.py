@@ -13,14 +13,12 @@ import simple_env
 import grid_world
 
 
-def generate_log_dir_path(env_name, seed, informed_context=False, nnenv=False):
+def generate_log_dir_path(env_name, seed, additional_path=None):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     # Make directory for env if not existing
     dir_path = os.path.join(dir_path, "log")
-    if informed_context:
-        dir_path = os.path.join(dir_path, "informed_context")
-    if nnenv:
-        dir_path = os.path.join(dir_path, "nnenv")
+    if additional_path:
+        dir_path = os.path.join(dir_path, additional_path)
     env_path = os.path.join(dir_path, env_name)
     seed_path = os.path.join(env_path, "seed_" + str(seed))
     return seed_path
@@ -30,7 +28,7 @@ def train_policy_on_se(env_name, time_steps, seed):
     # Parallel environments
     env = ArtificialEnv(env_name)
     # env = gym.make(env_name)
-    path = generate_log_dir_path(env_name, seed, nnenv=True)
+    path = generate_log_dir_path(env_name, seed, additional_path="nnenv")
     monitor_env = Monitor(env, filename=path)
     print(path)
 
@@ -55,7 +53,7 @@ def train_policy_on_se(env_name, time_steps, seed):
 
     model.learn(total_timesteps=time_steps, callback=eval_callback, progress_bar=True)
     print(monitor_env.get_episode_rewards())
-    model.save(os.path.join(path, "final_model"))
+    model.save(os.path.join(path, "exp_seed_1.pt"))
     return model
 
 
