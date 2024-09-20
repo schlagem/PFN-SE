@@ -2,7 +2,6 @@ import torch
 from torch import nn
 
 
-
 def cat_encoder_generator_generator(hps, target):
     activation_dict = {"relu": torch.nn.ReLU,
                        "sigmoid": torch.nn.Sigmoid,
@@ -207,6 +206,7 @@ def cat_decoder_generator_generator(hps):
             return torch.cat((out_1, zero_padding, out_2), dim=2)
 
     return NNCatDecClass
+
 
 if __name__ == '__main__':
     print("nothin to see")

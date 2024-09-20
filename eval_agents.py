@@ -40,7 +40,6 @@ def run_eval(env_name):
     for s in range(1, 4):
         sum_r = 0
         agent = PPO.load(f"val_transitions/expert_policies/PPO_{env_name}.zip")
-        #agent = PPO.load(f"val_transitions/expert_policies/PPO_CartPole-v1.zip")
         for i in range(100):
             obs, _ = env.reset()
             while True:
