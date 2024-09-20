@@ -24,5 +24,5 @@ for b in range(batch.x.shape[1]):
         plt.title(f"Distribution of samples of prior")
         plt.xlabel("Values")
         plt.ylabel("Counts")
-        plt.savefig(f"prior_histos/test_b_{b}_dim_{dim}.png")
+        plt.savefig(f"../prior_histos/test_b_{b}_dim_{dim}.png")
         plt.clf()
