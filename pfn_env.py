@@ -205,8 +205,7 @@ class ArtificialEnv(gym.Env):
         print(
             f"Using a Transformer with {sum(p.numel() for p in self.pfn.parameters()) / 1000 / 1000:.{2}f} M parameters"
         )
-        #self.pfn.load_state_dict(torch.load("saved_models/exp_seed_1.pt"))
-        self.pfn.load_state_dict(torch.load("saved_models/NNPriorOnly.pt"))
+        self.pfn.load_state_dict(torch.load("saved_models/exp_seed_1.pt"))
         self.pfn.eval()
 
         self.state = None
@@ -234,7 +233,6 @@ class ArtificialEnv(gym.Env):
             logits = self.pfn(self.train_x[:1000], self.train_y[:1000], self.train_x[:])
             ns = logits[1000, :, :].detach().clone() * self.y_std + self.y_mean
             ns = torch.mean(ns, dim=0)  # TODO discrete steps
-
         self.state = ns[:self.state.shape[0]].cpu().numpy()
         if self.round:
             self.state = self.state.round()
