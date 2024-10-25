@@ -14,6 +14,9 @@ import gymnasium as gym
 
 
 def plot_wheel(env_type, ang, rew):
+
+    plt.rcParams.update({'font.size': 16})
+
     ax = plt.subplot(projection='polar')
     ax.set_theta_zero_location('N')
 
@@ -43,11 +46,17 @@ def plot_wheel(env_type, ang, rew):
     # Show colorbar to indicate reward mapping
     sm = plt.cm.ScalarMappable(cmap=cm.get_cmap("RdYlGn"), norm=norm)
     sm.set_array([])
-    plt.colorbar(sm, ax=ax, label='Reward')
-    ax.set_yticks([])
 
-    plt.title(f"Polar Histogram Rewards - {env_type} Environment")
-    plt.savefig(f"plots/Pendulum_reward_{env_type}.png", dpi=500)
+    ax.set_yticks([])  # Remove radial ticks
+
+    ax.tick_params(pad=10)  # Increase padding to prevent overlap
+
+    # Add colorbar to the plot
+    cbar = plt.colorbar(sm, ax=ax, pad=0.12)
+    cbar.ax.set_ylabel('Reward', rotation=270, labelpad=15)
+
+    plt.title(f"Reward for {env_type} Pendulum \n w.r.t. to Pole Angle")
+    plt.savefig(f"plots/Pendulum_reward_{env_type}.png", dpi=500, bbox_inches="tight")
 
 
 def plot_grid_rewards(env_type):
@@ -61,7 +70,7 @@ def plot_grid_rewards(env_type):
     angles = []
     for i in range(1000):
         if i % 100 == 0:
-            print(i*100)
+            print(i)
         env.reset()
         env.state = env.observation_space.sample()
         obs, r, d, _, _ = env.step(env.action_space.sample())

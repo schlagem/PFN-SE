@@ -37,6 +37,8 @@ def draw_square_and_tri(axis, pos, vals, cmap, norm):
 
 def plot_grid_rewards(env_type):
 
+    plt.rcParams.update({'font.size': 16})
+
     fig, ax = plt.subplots()
 
     if env_type == "OSWM":
@@ -77,10 +79,11 @@ def plot_grid_rewards(env_type):
     cbar = plt.colorbar(sm, ax=ax)
     cbar.ax.set_ylabel('Reward', rotation=270)
 
-    # plt.xticks([], [])
-    # plt.yticks([], [])
-    plt.title(f"Reward for non-terminal states of {env_type} Grid World")
-    plt.savefig(f"plots/GridWorld_reward_{env_type}.png", dpi=500)
+    fig.set_figheight(6.5)
+    fig.set_figwidth(5)
+
+    plt.title(f"Reward for non-terminal states \n of {env_type} Grid World")
+    plt.savefig(f"plots/GridWorld_reward_{env_type}.png", dpi=500, bbox_inches="tight")
 
 
 if __name__ == '__main__':

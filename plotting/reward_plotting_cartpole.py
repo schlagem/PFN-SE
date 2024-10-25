@@ -14,6 +14,9 @@ import gymnasium as gym
 
 
 def plot_wheel(env_type, ang, rew):
+
+    plt.rcParams.update({'font.size': 16})
+
     comap = cm.get_cmap("RdYlGn")
     # Find the min and max angles
     min_angle = min(ang)
@@ -24,7 +27,7 @@ def plot_wheel(env_type, ang, rew):
     colors = comap(norm(rew))
 
     # Plot the polar histogram, using colors to represent rewards
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(5, 5))
     ax = plt.subplot()
 
 
@@ -57,11 +60,14 @@ def plot_wheel(env_type, ang, rew):
     # Show colorbar for rewards and set title
     sm = plt.cm.ScalarMappable(cmap=comap, norm=norm)
     sm.set_array([])
-    plt.colorbar(sm, ax=ax, label='Reward')
+
+    # Add colorbar to the plot
+    cbar = plt.colorbar(sm, ax=ax)
+    cbar.ax.set_ylabel('Reward', rotation=270, labelpad=15)
 
     plt.xlabel("Pole angle")
-    plt.title(f"Polar Histogram Rewards - {env_type} Environment")
-    plt.savefig(f"plots/CartPole_reward_{env_type}.png", dpi=500)
+    plt.title(f"Reward for {env_type} CartPole \n w.r.t. to Pole Angle")
+    plt.savefig(f"plots/CartPole_reward_{env_type}.png", dpi=500, bbox_inches="tight")
 
 
 def plot_grid_rewards(env_type):
@@ -87,7 +93,7 @@ def plot_grid_rewards(env_type):
             if i % 100 == 0:
                 print(i)
             _, _ = env.reset()
-            env.state = np.array([1, 1, 0.8, 1]) * (np.random.rand(4) - 0.5)
+            env.state = np.array([1, 1, 0.84, 1]) * (np.random.rand(4) - 0.5)
             obs, r, d, _, _ = env.step(env.action_space.sample())
             rewards.append(r)
 
